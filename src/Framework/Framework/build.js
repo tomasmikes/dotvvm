@@ -4,7 +4,7 @@ let printStats = Boolean(process.env.PRINT_STATS)
 
 let results = {}
 
-async function build({ debug, spa, output, input = "dotvvm-root.ts" }) {
+async function build({ debug, spa, isWebView, output, input = "dotvvm-root.ts" }) {
     return results[output] = await esbuild.build({
         format: 'esm',
         bundle: true,
@@ -12,6 +12,7 @@ async function build({ debug, spa, output, input = "dotvvm-root.ts" }) {
         outfile: `./obj/javascript/${output}/dotvvm-root.js`,
         define: {
             "compileConstants.isSpa": spa,
+            "compileConstants.isWebView": isWebView,
             "compileConstants.debug": debug,
         },
         target: [
@@ -33,15 +34,17 @@ async function buildDebugAndProd(options) {
 }
 
 async function main() {
-    await buildDebugAndProd({ spa: false, output: "root-only" })
-    await buildDebugAndProd({ spa: true, output: "root-spa" })
+    await buildDebugAndProd({ spa: false, isWebView: false, output: "root-only" })
+    await buildDebugAndProd({ spa: true, isWebView: false, output: "root-spa" })
+    await buildDebugAndProd({ spa: true, isWebView: true, output: "root-webview" })
 
     if (printStats) {
         const fs = require('fs')
         const zlib = require('zlib')
         const outputs = [
             'root-spa',
-            'root-only'
+            'root-only',
+            'root-webview'
         ]
 
         for (const f of outputs) {

@@ -1,6 +1,7 @@
 import { initCore, getViewModel, getViewModelObservable, initBindings, getCulture, getState, getStateManager } from "./dotvvm-base"
 import * as events from './events'
 import * as spa from "./spa/spa"
+import * as webView from "./webView/webView"
 import * as validation from './validation/validation'
 import { postBack } from './postback/postback'
 import { serialize } from './serialization/serialize'
@@ -137,12 +138,16 @@ if (compileConstants.isSpa) {
     (dotvvmExports as any).handleSpaNavigation = handleSpaNavigation;
 }
 
+if (compileConstants.isWebView) {
+    (dotvvmExports as any).webView = webView;
+}
+
 if (compileConstants.debug) {
     (dotvvmExports as any).debug = true
 }
 
 declare global {
-    const dotvvm: typeof dotvvmExports & {debug?: true, isSpaReady?: typeof isSpaReady, handleSpaNavigation?: typeof handleSpaNavigation};
+    const dotvvm: typeof dotvvmExports & {debug?: true, isSpaReady?: typeof isSpaReady, handleSpaNavigation?: typeof handleSpaNavigation, webView?: typeof webView};
 
     interface Window {
         dotvvm: typeof dotvvmExports
