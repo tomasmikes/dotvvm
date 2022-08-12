@@ -74,7 +74,11 @@ public abstract class WebViewManager : IAsyncDisposable
 
         _ = _dispatcher.DispatchAsync(async () =>
         {
-            await _messageHandler.ProcessRequestOrResponse(message);
+            var response = await _messageHandler.ProcessRequestOrResponse(message);
+            if (response != null)
+            {
+                SendMessage(response);
+            }
         });
     }
 

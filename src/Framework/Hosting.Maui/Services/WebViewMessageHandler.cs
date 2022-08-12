@@ -8,6 +8,7 @@ using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Hosting.Maui.Services.Messaging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace DotVVM.Framework.Hosting.Maui.Services
 {
@@ -23,7 +24,12 @@ namespace DotVVM.Framework.Hosting.Maui.Services
 
         public WebViewMessageHandler(DotvvmWebRequestHandler dotvvmWebRequestHandler)
         {
-            serializerSettings = new(() => DefaultSerializerSettingsProvider.Instance.GetSettingsCopy());
+            serializerSettings = new(() =>
+            {
+                var settings = DefaultSerializerSettingsProvider.Instance.GetSettingsCopy();
+                settings.ContractResolver = new DefaultContractResolver() { NamingStrategy = new CamelCaseNamingStrategy() };
+                return settings;
+            });
             serializer = new(() => JsonSerializer.Create(serializerSettings.Value));
 
             this.dotvvmWebRequestHandler = dotvvmWebRequestHandler;

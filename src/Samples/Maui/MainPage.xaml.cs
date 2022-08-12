@@ -6,7 +6,7 @@
         {
             InitializeComponent();
 
-            BindingContext = new MainPageViewModel() { RouteName = "Default" };
+            BindingContext = new MainPageViewModel() { RouteName = "ControlSamples_Button_Button" };
         }
 
 

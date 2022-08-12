@@ -36,7 +36,7 @@ async function buildDebugAndProd(options) {
 async function main() {
     await buildDebugAndProd({ spa: false, isWebView: false, output: "root-only" })
     await buildDebugAndProd({ spa: true, isWebView: false, output: "root-spa" })
-    await buildDebugAndProd({ spa: true, isWebView: true, output: "root-webview" })
+    await buildDebugAndProd({ spa: false, isWebView: true, output: "root-webview" })        // TODO solve problem with spa when no SpaContentPlaceHolder is present in the page
 
     if (printStats) {
         const fs = require('fs')

@@ -16,5 +16,7 @@ namespace DotVVM.Framework.Hosting.Maui.Services.Messaging
 
         public JObject Payload { get; set; }
 
+        public string ErrorMessage { get; set; }
+
     }
 }
