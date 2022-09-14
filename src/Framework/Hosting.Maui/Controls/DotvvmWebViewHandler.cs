@@ -1,146 +1,137 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using DotVVM.Framework.Configuration;
+﻿using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Hosting.Maui.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui;
-using Microsoft.Maui.Handlers;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-namespace DotVVM.Framework.Hosting.Maui.Controls
+namespace DotVVM.Framework.Hosting.Maui.Controls;
+
+public partial class DotvvmWebViewHandler
 {
-    public partial class DotvvmWebViewHandler
+    internal readonly WebViewMessageHandler _messageHandler;
+    internal Action<ExternalLinkNavigationEventArgs>? ExternalNavigationStarting;
+
+    private string routeName;
+
+    public string RouteName
     {
-        internal readonly WebViewMessageHandler _messageHandler;
-
-        /// <summary>
-        /// This field is part of MAUI infrastructure and is not intended for use by application code.
-        /// </summary>
-        public static readonly PropertyMapper<IDotvvmWebView, DotvvmWebViewHandler> DotvvmWebViewMapper = new(ViewMapper) {
-            [nameof(IDotvvmWebView.ExternalNavigationStarting)] = MapNotifyExternalNavigationStarting,
-            [nameof(IDotvvmWebView.RouteName)] = MapRouteName,
-            [nameof(IDotvvmWebView.Url)] = MapUrl
-        };
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="DotvvmWebViewHandler"/> with default mappings.
-        /// </summary>
-        public DotvvmWebViewHandler(WebViewMessageHandler messageHandler)
-            : this(DotvvmWebViewMapper)
+        get
         {
-            _messageHandler = messageHandler;
+            return routeName;
         }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="DotvvmWebViewHandler"/> using the specified mappings.
-        /// </summary>
-        /// <param name="mapper">The property mappings.</param>
-        public DotvvmWebViewHandler(PropertyMapper? mapper)
-            : base(mapper ?? DotvvmWebViewMapper)
+        set
         {
-        }
-
-
-        /// <summary>
-        /// Maps the <see cref="IDotvvmWebView.HostPage"/> property to the specified handler.
-        /// </summary>
-        /// <param name="handler">The <see cref="DotvvmWebViewHandler"/>.</param>
-        /// <param name="webView">The <see cref="IDotvvmWebView"/>.</param>
-        public static void MapRouteName(DotvvmWebViewHandler handler, IDotvvmWebView webView)
-        {
-            handler.RouteName = webView.RouteName;
-            handler.StartWebViewCoreIfPossible();
-        }
-
-
-        /// <summary>
-        /// Maps the <see cref="IDotvvmWebView.HostPage"/> property to the specified handler.
-        /// </summary>
-        /// <param name="handler">The <see cref="DotvvmWebViewHandler"/>.</param>
-        /// <param name="webView">The <see cref="IDotvvmWebView"/>.</param>
-        public static void MapUrl(DotvvmWebViewHandler handler, IDotvvmWebView webView)
-        {
-            handler.Url = webView.Url;
-            handler.StartWebViewCoreIfPossible();
-        }
-
-        /// <summary>
-        /// Maps the <see cref="DotvvmWebView.NotifyExternalNavigationStarting"/> property to the specified handler.
-        /// </summary>
-        /// <param name="handler">The <see cref="DotvvmWebViewHandler"/>.</param>
-        /// <param name="webView">The <see cref="IDotvvmWebView"/>.</param>
-        public static void MapNotifyExternalNavigationStarting(DotvvmWebViewHandler handler, IDotvvmWebView webView)
-        {
-            if (webView is DotvvmWebView dotvvmWebView)
+            if (!string.IsNullOrEmpty(value) && value != routeName)
             {
-                handler.ExternalNavigationStarting = dotvvmWebView.NotifyExternalNavigationStarting;
+                NavigateToRoute(value);
             }
         }
+    }
 
-        private string routeName;
-        public string RouteName
+    public string Url
+    {
+        get
         {
-            get
-            {
-                return routeName;
-            }
-            set
-            {
-                if (!string.IsNullOrEmpty(value) && value != routeName)
-                {
-                    NavigateToRoute(value);
-                }
-            }
+            return PlatformView.Source?.ToString();
         }
-
-        protected void NavigateToRoute(string value)
+        set
         {
-            // make sure DotVVM is initialized
-            _ = Services.GetRequiredService<DotvvmWebRequestHandler>();
-
-            var route = Services.GetRequiredService<DotvvmConfiguration>().RouteTable[value];
-            var url = route.BuildUrl().TrimStart('~');
-
-            routeName = value;
-            Url = url;
-        }
-
-        public string Url
-        {
-            get
+            if (!string.IsNullOrEmpty(value))
             {
-                return PlatformView.Source?.ToString();
-            }
-            set
-            {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    _webviewManager?.Navigate(value);
-                }
+                _webviewManager?.Navigate(value);
             }
         }
-        
-        partial void StartWebViewCoreIfPossible();
+    }
 
-        internal Action<ExternalLinkNavigationEventArgs>? ExternalNavigationStarting;
+    partial void StartWebViewCoreIfPossible();
 
-        internal Task<dynamic> GetViewModelSnapshot()
+    /// <summary>
+    /// This field is part of MAUI infrastructure and is not intended for use by application code.
+    /// </summary>
+    public static readonly PropertyMapper<IDotvvmWebView, DotvvmWebViewHandler> DotvvmWebViewMapper = new(ViewMapper) {
+        [nameof(IDotvvmWebView.ExternalNavigationStarting)] = MapNotifyExternalNavigationStarting,
+        [nameof(IDotvvmWebView.RouteName)] = MapRouteName,
+        [nameof(IDotvvmWebView.Url)] = MapUrl
+    };
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DotvvmWebViewHandler"/> with default mappings.
+    /// </summary>
+    public DotvvmWebViewHandler(WebViewMessageHandler messageHandler)
+        : this(DotvvmWebViewMapper)
+    {
+        _messageHandler = messageHandler;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DotvvmWebViewHandler"/> using the specified mappings.
+    /// </summary>
+    /// <param name="mapper">The property mappings.</param>
+    public DotvvmWebViewHandler(PropertyMapper? mapper)
+        : base(mapper ?? DotvvmWebViewMapper)
+    {
+    }
+
+
+    /// <summary>
+    /// Maps the <see cref="IDotvvmWebView.HostPage"/> property to the specified handler.
+    /// </summary>
+    /// <param name="handler">The <see cref="DotvvmWebViewHandler"/>.</param>
+    /// <param name="webView">The <see cref="IDotvvmWebView"/>.</param>
+    public static void MapRouteName(DotvvmWebViewHandler handler, IDotvvmWebView webView)
+    {
+        handler.RouteName = webView.RouteName;
+        handler.StartWebViewCoreIfPossible();
+    }
+
+
+    /// <summary>
+    /// Maps the <see cref="IDotvvmWebView.HostPage"/> property to the specified handler.
+    /// </summary>
+    /// <param name="handler">The <see cref="DotvvmWebViewHandler"/>.</param>
+    /// <param name="webView">The <see cref="IDotvvmWebView"/>.</param>
+    public static void MapUrl(DotvvmWebViewHandler handler, IDotvvmWebView webView)
+    {
+        handler.Url = webView.Url;
+        handler.StartWebViewCoreIfPossible();
+    }
+
+    /// <summary>
+    /// Maps the <see cref="DotvvmWebView.NotifyExternalNavigationStarting"/> property to the specified handler.
+    /// </summary>
+    /// <param name="handler">The <see cref="DotvvmWebViewHandler"/>.</param>
+    /// <param name="webView">The <see cref="IDotvvmWebView"/>.</param>
+    public static void MapNotifyExternalNavigationStarting(DotvvmWebViewHandler handler, IDotvvmWebView webView)
+    {
+        if (webView is DotvvmWebView dotvvmWebView)
         {
-            var message = _messageHandler.CreateCommandMessage("GetViewModelSnapshot");
-
-            _webviewManager.SendMessage(_messageHandler.SerializeObject(message));
-            return _messageHandler.WaitForMessage<dynamic>(message.MessageId);
+            handler.ExternalNavigationStarting = dotvvmWebView.NotifyExternalNavigationStarting;
         }
+    }
 
-        internal Task<dynamic> PatchViewModel(dynamic patch)
-        {
-            var jsonPatch = _messageHandler.SerializeObject(patch, false);
-            var message = _messageHandler.CreateCommandMessage("PatchViewModel", jsonPatch);
+    protected void NavigateToRoute(string value)
+    {
+        // make sure DotVVM is initialized
+        _ = Services.GetRequiredService<DotvvmWebRequestHandler>();
 
-            _webviewManager.SendMessage(_messageHandler.SerializeObject(message));
-            return _messageHandler.WaitForMessage<dynamic>(message.MessageId);
-        }
+        var route = Services.GetRequiredService<DotvvmConfiguration>().RouteTable[value];
+        var url = route.BuildUrl().TrimStart('~');
+
+        routeName = value;
+        Url = url;
+    }
+
+    internal Task<dynamic> GetViewModelSnapshot()
+    {
+        var message = _messageHandler.CreateCommandMessage("GetViewModelSnapshot");
+
+        _webviewManager.SendMessage(_messageHandler.SerializeObject(message));
+        return _messageHandler.WaitForMessage<dynamic>(message.MessageId);
+    }
+
+    internal Task<dynamic> PatchViewModel(dynamic patch)
+    {
+        var jsonPatch = _messageHandler.SerializeObject(patch, false);
+        var message = _messageHandler.CreateCommandMessage("PatchViewModel", jsonPatch);
+
+        _webviewManager.SendMessage(_messageHandler.SerializeObject(message));
+        return _messageHandler.WaitForMessage<dynamic>(message.MessageId);
     }
 }

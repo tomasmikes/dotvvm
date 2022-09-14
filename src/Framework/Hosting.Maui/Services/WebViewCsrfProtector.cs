@@ -1,11 +1,5 @@
-﻿using DotVVM.Framework.Hosting;
-using DotVVM.Framework.Security;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using DotVVM.Framework.Security;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DotVVM.Framework.Hosting.Maui.Services
 {

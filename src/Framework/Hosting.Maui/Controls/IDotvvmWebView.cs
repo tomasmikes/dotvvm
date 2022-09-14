@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DotVVM.Framework.Hosting.Maui.Controls;
+﻿namespace DotVVM.Framework.Hosting.Maui.Controls;
 
 /// <summary>
 /// Defines a contract for a view that renders Blazor content.

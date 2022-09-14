@@ -98,7 +98,7 @@ export async function webMessageFetch(url: string, init: RequestInit): Promise<R
 
     const message: HttpRequestInputMessage = {
         url,
-        method: init.method || "GET",
+        method: init.method,
         headers: [],
         bodyString: init.body as string
     };
