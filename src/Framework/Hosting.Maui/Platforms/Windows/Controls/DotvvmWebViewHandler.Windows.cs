@@ -58,9 +58,11 @@ namespace DotVVM.Framework.Hosting.Maui.Controls
             }
 
             var webRequestHandler = Services!.GetRequiredService<DotvvmWebRequestHandler>();
+            var webViewMessageHandler = Services!.GetRequiredService<WebViewMessageHandler>();
+
             _webviewManager = new WindowsWebViewManager(
                 PlatformView,
-				new WebViewMessageHandler(webRequestHandler),
+                webViewMessageHandler,
 				Dispatcher.GetForCurrentThread()!,
 				webRequestHandler,
 				this);

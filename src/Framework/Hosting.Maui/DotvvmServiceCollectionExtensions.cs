@@ -59,6 +59,7 @@ namespace DotVVM.Framework.Hosting.Maui
             
             builder.Services.AddSingleton<RequestDelegate>(provider => GetRequestDelegate<TDotvvmStartup>(provider, environment, debug, configure));
             builder.Services.AddSingleton<DotvvmWebRequestHandler>();
+            builder.Services.AddSingleton<WebViewMessageHandler>();
 
             return builder;
         }

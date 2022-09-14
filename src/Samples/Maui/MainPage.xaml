@@ -1,13 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:dotvvm="clr-namespace:DotVVM.Framework.Hosting.Maui.Controls;assembly=DotVVM.Framework.Hosting.Maui"
              x:Class="DotVVM.Samples.BasicSamples.Maui.MainPage">
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
+            <RowDefinition Height="200" />
+            <RowDefinition Height="100" />
+            <RowDefinition Height="100" />
         </Grid.RowDefinitions>
 
         <HorizontalStackLayout Grid.Row="0">
@@ -15,9 +15,15 @@
             <Label Text="{Binding RouteName}" />
         </HorizontalStackLayout>
 
+        <VerticalStackLayout Grid.Row="1">
+            <Label Text="{Binding ViewModelState}" />
+            <Button Text="Patch View Model" Clicked="PatchViewModelStateButton_Clicked" />
+            <Button Text="Get ViewModel State" Clicked="GetViewModelStateButton_Clicked" />
+        </VerticalStackLayout>
+
         <dotvvm:DotvvmWebView x:Name="DotvvmPage" 
-                              RouteName="{Binding RouteName}" 
-                              Grid.Row="1" />
+                              RouteName="{Binding RouteName}"
+                              Grid.Row="2" />
     </Grid>
 
 </ContentPage>

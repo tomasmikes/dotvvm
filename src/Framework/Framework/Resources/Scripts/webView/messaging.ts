@@ -14,6 +14,10 @@ type HttpRequestOutputMessage = {
     headers: { key: string, value: string }[];
     bodyString: string;
 };
+type HandlerCommandMessage = {
+    action: string;
+    content: string;
+};
 
 const pendingRequests: { resolve: (result: any) => void, reject: (result: any) => void }[] = [];
 
@@ -53,6 +57,15 @@ export async function sendMessageAndWaitForResponse<T>(messageType: string, mess
             promise.resolve(response);
             return;
 
+        } else if (envelope.type == "GetViewModelSnapshot") {
+            const message: HandlerCommandMessage = {
+                action: envelope.type,
+                content: JSON.stringify(dotvvm.state)
+            };
+            return message;
+        } else if (envelope.type == "PatchViewModel") {
+            dotvvm.patchState(envelope.payload);
+            return;
         } else {
             throw `Command ${envelope.type} not found!`;
         }

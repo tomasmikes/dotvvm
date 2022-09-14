@@ -38,5 +38,15 @@ namespace DotVVM.Framework.Hosting.Maui.Controls
 		{
 			ExternalNavigationStarting?.Invoke(this, args);
 		}
+        
+        public Task<dynamic> GetViewModelSnapshot()
+        {
+            return ((DotvvmWebViewHandler)Handler).GetViewModelSnapshot();
+        }
+
+        public Task PatchViewModel(dynamic patch)
+        {
+            return ((DotvvmWebViewHandler)Handler).PatchViewModel(patch);
+        }
     }
 }

@@ -13,6 +13,8 @@ namespace DotVVM.Framework.Hosting.Maui.Controls
 {
     public partial class DotvvmWebViewHandler
     {
+        internal readonly WebViewMessageHandler _messageHandler;
+
         /// <summary>
         /// This field is part of MAUI infrastructure and is not intended for use by application code.
         /// </summary>
@@ -25,15 +27,18 @@ namespace DotVVM.Framework.Hosting.Maui.Controls
         /// <summary>
         /// Initializes a new instance of <see cref="DotvvmWebViewHandler"/> with default mappings.
         /// </summary>
-        public DotvvmWebViewHandler() : this(DotvvmWebViewMapper)
+        public DotvvmWebViewHandler(WebViewMessageHandler messageHandler)
+            : this(DotvvmWebViewMapper)
         {
+            _messageHandler = messageHandler;
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="DotvvmWebViewHandler"/> using the specified mappings.
         /// </summary>
         /// <param name="mapper">The property mappings.</param>
-        public DotvvmWebViewHandler(PropertyMapper? mapper) : base(mapper ?? DotvvmWebViewMapper)
+        public DotvvmWebViewHandler(PropertyMapper? mapper)
+            : base(mapper ?? DotvvmWebViewMapper)
         {
         }
 
@@ -116,9 +121,26 @@ namespace DotVVM.Framework.Hosting.Maui.Controls
                 }
             }
         }
-
+        
         partial void StartWebViewCoreIfPossible();
 
         internal Action<ExternalLinkNavigationEventArgs>? ExternalNavigationStarting;
+
+        internal Task<dynamic> GetViewModelSnapshot()
+        {
+            var message = _messageHandler.CreateCommandMessage("GetViewModelSnapshot");
+
+            _webviewManager.SendMessage(_messageHandler.SerializeObject(message));
+            return _messageHandler.WaitForMessage<dynamic>(message.MessageId);
+        }
+
+        internal Task<dynamic> PatchViewModel(dynamic patch)
+        {
+            var jsonPatch = _messageHandler.SerializeObject(patch, false);
+            var message = _messageHandler.CreateCommandMessage("PatchViewModel", jsonPatch);
+
+            _webviewManager.SendMessage(_messageHandler.SerializeObject(message));
+            return _messageHandler.WaitForMessage<dynamic>(message.MessageId);
+        }
     }
 }

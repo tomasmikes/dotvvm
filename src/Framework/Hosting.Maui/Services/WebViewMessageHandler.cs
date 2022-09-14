@@ -14,13 +14,13 @@ namespace DotVVM.Framework.Hosting.Maui.Services
 {
     public class WebViewMessageHandler
     {
+        private readonly DotvvmWebRequestHandler dotvvmWebRequestHandler;
+
         private readonly Lazy<JsonSerializerSettings> serializerSettings;
         private readonly Lazy<JsonSerializer> serializer;
 
-        private int messageIdCounter;
-
         private Dictionary<int, TaskCompletionSource<string>> incomingMessageQueue = new();
-        private readonly DotvvmWebRequestHandler dotvvmWebRequestHandler;
+        private int messageIdCounter;
 
         public WebViewMessageHandler(DotvvmWebRequestHandler dotvvmWebRequestHandler)
         {
@@ -34,23 +34,42 @@ namespace DotVVM.Framework.Hosting.Maui.Services
 
             this.dotvvmWebRequestHandler = dotvvmWebRequestHandler;
         }
-        private async Task<T> WaitForMessage<T>(int messageId)
+        
+        public async Task<T> WaitForMessage<T>(int messageId)
         {
             var source = new TaskCompletionSource<string>();
             incomingMessageQueue[messageId] = source;
             var result = await source.Task;
-            return JsonConvert.DeserializeObject<T>(result);
+            return JsonConvert.DeserializeObject<T>(result, serializerSettings.Value);
         }
 
         internal async Task<string?> ProcessRequestOrResponse(string json)
         {
             var message = JsonConvert.DeserializeObject<WebViewMessageEnvelope>(json, serializerSettings.Value);
-
+            
             object? response;
             if (message.Type == "HttpRequest")
             {
                 var request = message.Payload.ToObject<HttpRequestInputMessage>(serializer.Value);
                 response = await ProcessHttpRequest(request);
+            }
+            else if (message.Type == "HandlerCommand")
+            {
+                var request = message.Payload.ToObject<HandlerCommandMessage>(serializer.Value);
+
+                switch (request.Action)
+                {
+                    case "GetViewModelState":
+                        break;
+                    case "PatchViewModelState":
+                        break;
+                    default:
+                        // TODO: maybe throw exception about unknown command
+                        break;
+                }
+
+                incomingMessageQueue[message.MessageId].SetResult(JsonConvert.SerializeObject(request.Content, serializerSettings.Value));
+                return null;
             }
             else
             {
@@ -86,6 +105,25 @@ namespace DotVVM.Framework.Hosting.Maui.Services
                 Headers = response.Headers,
                 BodyString = Encoding.UTF8.GetString(response.Content.ToArray())
             };
+        }
+        
+        public WebViewMessageEnvelope CreateCommandMessage(string commandName, string jsonPayload = null)
+        {
+            var messageId = Interlocked.Increment(ref messageIdCounter);
+            var message = new WebViewMessageEnvelope { MessageId = messageId, Type = commandName };
+
+            if (jsonPayload != null)
+            {
+                message.Payload = JObject.Parse(jsonPayload);
+            }
+            return message;
+        }
+
+        public string SerializeObject(object obj, bool camelCaseNamingStrategy = true)
+        {
+            return camelCaseNamingStrategy
+                ? JsonConvert.SerializeObject(obj, serializerSettings.Value)
+                : JsonConvert.SerializeObject(obj);
         }
     }
 }
