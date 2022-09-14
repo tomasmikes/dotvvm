@@ -30,10 +30,12 @@ namespace DotVVM.Framework.Hosting.Maui
             string applicationPath,
             string? webRootPath = null,
             bool debug = false,
-            Action<DotvvmConfiguration> configure = null)
+            Action<DotvvmConfiguration> configure = null,
+            Action<IApplicationBuilder> configureBeforeDotvvm = null,
+            Action<IApplicationBuilder> configureAfterDotvvm = null)
             where TDotvvmStartup : IDotvvmStartup, IDotvvmServiceConfigurator, new()
         {
-            return builder.AddMauiDotvvmWebView<TDotvvmStartup, TDotvvmStartup>(applicationPath, webRootPath, debug, configure);
+            return builder.AddMauiDotvvmWebView<TDotvvmStartup, TDotvvmStartup>(applicationPath, webRootPath, debug, configure, configureBeforeDotvvm, configureAfterDotvvm);
         }
 
         /// <summary>
@@ -46,8 +48,10 @@ namespace DotVVM.Framework.Hosting.Maui
 			string applicationPath,
             string? webRootPath = null,
 			bool debug = false,
-			Action<DotvvmConfiguration> configure = null)
-			where TDotvvmStartup : IDotvvmStartup, new()
+			Action<DotvvmConfiguration> configure = null,
+            Action<IApplicationBuilder> configureBeforeDotvvm = null,
+            Action<IApplicationBuilder> configureAfterDotvvm = null)
+            where TDotvvmStartup : IDotvvmStartup, new()
 			where TDotvvmServiceConfigurator : IDotvvmServiceConfigurator, new()
         {
             builder.ConfigureMauiHandlers(handlers => handlers.AddHandler<IDotvvmWebView, DotvvmWebViewHandler>());
@@ -57,19 +61,27 @@ namespace DotVVM.Framework.Hosting.Maui
 
             var environment = RegisterEnvironment(builder, applicationPath, webRootPath, debug);
             
-            builder.Services.AddSingleton<RequestDelegate>(provider => GetRequestDelegate<TDotvvmStartup>(provider, environment, debug, configure));
+            builder.Services.AddSingleton<RequestDelegate>(provider => GetRequestDelegate<TDotvvmStartup>(provider, environment, debug, configure, configureBeforeDotvvm, configureAfterDotvvm));
             builder.Services.AddSingleton<DotvvmWebRequestHandler>();
             builder.Services.AddSingleton<WebViewMessageHandler>();
 
             return builder;
         }
-        public static RequestDelegate GetRequestDelegate<TDotvvmStartup>(IServiceProvider provider, DotvvmWebHostEnvironment environment, bool debug, Action<DotvvmConfiguration> configure = null)
+
+        public static RequestDelegate GetRequestDelegate<TDotvvmStartup>(
+            IServiceProvider provider,
+            DotvvmWebHostEnvironment environment,
+            bool debug,
+            Action<DotvvmConfiguration> configure = null,
+            Action<IApplicationBuilder> configureBeforeDotvvm = null,
+            Action<IApplicationBuilder> configureAfterDotvvm = null)
             where TDotvvmStartup : IDotvvmStartup, new()
         {
             var factory = new ApplicationBuilderFactory(provider);
             
             var appBuilder = factory.CreateBuilder(new FeatureCollection());
-            // TODO: extensibility points
+
+            configureBeforeDotvvm?.Invoke(appBuilder);
             appBuilder.UseDotVVM<TDotvvmStartup>(environment.ContentRootPath, debug, config => 
             {
                 ConfigureDotvvm(config);
@@ -79,6 +91,7 @@ namespace DotVVM.Framework.Hosting.Maui
             {
                 FileProvider = new PhysicalFileProvider(environment.WebRootPath)
             });
+            configureAfterDotvvm?.Invoke(appBuilder);
 
             return appBuilder.Build();
         }
