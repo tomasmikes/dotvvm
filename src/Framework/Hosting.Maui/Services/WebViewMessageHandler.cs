@@ -18,6 +18,7 @@ public class WebViewMessageHandler
 
     private Dictionary<int, TaskCompletionSource<string>> incomingMessageQueue = new();
     private int messageIdCounter;
+    private bool spaNavigating;
 
     public WebViewMessageHandler(DotvvmWebRequestHandler dotvvmWebRequestHandler)
     {
@@ -55,20 +56,29 @@ public class WebViewMessageHandler
         else if (message.Type == "GetViewModelSnapshot" || message.Type == "PatchViewModelState")
         {
             var payload = message.Payload.ToObject<PatchViewModelMessage>(serializer.Value);
-            
-            incomingMessageQueue[message.MessageId]
-                .SetResult(JsonConvert.SerializeObject(payload.Content, serializerSettings.Value));
+
+            incomingMessageQueue[message.MessageId].SetResult(JsonConvert.SerializeObject(payload.Content, serializerSettings.Value));
         }
-        else if (message.Type == "InitCompleted")
+        else if (message.Type == "SpaNavigating")
+        {
+            spaNavigating = true;
+        }
+        else if (message.Type == "SpaNavigationCompleted" || message.Type == "InitCompleted")
         {
             // dottvm is initialized and navigation is completed
-
             var payload = message.Payload.ToObject<InitCompletedMessage>(serializer.Value);
 
-            webViewHandler.RouteName = payload.RouteName;
-            webViewHandler.VirtualView.RouteName = payload.RouteName;
+            NotifyAboutRouteChange(payload.RouteName);
 
-            webViewHandler.IsPageLoaded = true;
+            if (message.Type == "SpaNavigationCompleted")
+            {
+                webViewHandler.IsPageLoaded = true;
+                spaNavigating = false;
+            }
+            else
+            {
+                webViewHandler.IsPageLoaded = !spaNavigating;
+            }
         }
         else if (message.Type == "PageNotification")
         {
@@ -133,5 +143,11 @@ public class WebViewMessageHandler
         return camelCaseNamingStrategy
             ? JsonConvert.SerializeObject(obj, serializerSettings.Value)
             : JsonConvert.SerializeObject(obj);
+    }
+
+    private void NotifyAboutRouteChange(string routeName)
+    {
+        webViewHandler.RouteName = routeName;
+        webViewHandler.VirtualView.RouteName = routeName;
     }
 }

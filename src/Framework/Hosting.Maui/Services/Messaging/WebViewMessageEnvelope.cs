@@ -8,7 +8,7 @@ public class WebViewMessageEnvelope
 
     public int MessageId { get; set; }
 
-    public JObject Payload { get; set; }
+    public JObject? Payload { get; set; }
 
     public string ErrorMessage { get; set; }
 }

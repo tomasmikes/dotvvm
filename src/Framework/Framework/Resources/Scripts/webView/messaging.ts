@@ -1,9 +1,9 @@
-﻿import { initCompleted, spaNavigated } from "../events";
+﻿import { initCompleted, spaNavigated, spaNavigating } from "../events";
 
 type WebViewMessageEnvelope = {
     type: string;
     messageId?: number;
-    payload: any;
+    payload?: any;
 };
 type HttpRequestInputMessage = {
     url: string;
@@ -19,7 +19,7 @@ type HttpRequestOutputMessage = {
 type PatchViewModelMessage = {
     content: string;
 };
-type InitCompletedMessage = {
+type NavigationCompletedMessage = {
     routeName: string;
     routeParameters: { key: string, value: string }[];
 };
@@ -130,10 +130,10 @@ function sendPageNotification(methodName: string, args: any[]) {
     });
 }
 
-function notifyNavigationCompleted() {
+function notifyNavigationCompleted(messageType: string) {
     sendMessage({
-        type: "InitCompleted",
-        payload: <InitCompletedMessage>{
+        type: messageType,
+        payload: <NavigationCompletedMessage>{
             routeName: dotvvm.routeName,
             routeParameters: dotvvm.routeParameters
         }
@@ -141,9 +141,15 @@ function notifyNavigationCompleted() {
 }
 
 initCompleted.subscribe(() => {
-    notifyNavigationCompleted();
+    notifyNavigationCompleted("InitCompleted");
 });
 
 spaNavigated.subscribe(() => {
-    notifyNavigationCompleted();
+    notifyNavigationCompleted("SpaNavigationCompleted");
+});
+
+spaNavigating.subscribe(() => {
+    sendMessage({
+        type: "SpaNavigating"
+    });
 });
