@@ -66,6 +66,8 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, WebView2
             webRequestHandler,
             this);
 
+        webViewMessageHandler.AttachWebViewHandler(this);
+
         // triggers the navigation to the default route
         if (!string.IsNullOrEmpty(RouteName))
         {

@@ -5,18 +5,17 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="200" />
+            <RowDefinition Height="50" />
             <RowDefinition Height="100" />
-            <RowDefinition Height="100" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <HorizontalStackLayout Grid.Row="0">
+        <VerticalStackLayout Grid.Row="0">
             <Label Text="Route" />
-            <Label Text="{Binding RouteName}" />
-        </HorizontalStackLayout>
+            <Entry Text="{Binding RouteName}" />
+        </VerticalStackLayout>
 
         <VerticalStackLayout Grid.Row="1">
-            <Label Text="{Binding ViewModelState}" />
             <Button Text="Patch View Model" Clicked="PatchViewModelStateButton_Clicked" />
             <Button Text="Get ViewModel State" Clicked="GetViewModelStateButton_Clicked" />
         </VerticalStackLayout>

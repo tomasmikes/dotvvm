@@ -10,12 +10,21 @@ import { replaceTypeInfo } from './metadata/typeMap'
 
 import { StateManager } from './state-manager'
 
+type Route = {
+    name: string,
+    parameters: {
+        [name: string]: any
+    }
+}
+
 type DotvvmCoreState = {
     _culture: string
     _viewModelCache?: any
     _viewModelCacheId?: string
     _virtualDirectory: string
     _initialUrl: string,
+    _routeName: string,
+    _routeParameters: { key: string, value: string }[],
     _stateManager: StateManager<RootViewModel>
 }
 
@@ -60,7 +69,8 @@ export function clearViewModelCache() {
     delete getCoreState()._viewModelCache;
 }
 export function getCulture(): string { return getCoreState()._culture; }
-
+export function getRouteName(): string { return getCoreState()._routeName; }
+export function getRouteParameters(): { key: string, value: string }[] { return getCoreState()._routeParameters; }
 export function getStateManager(): StateManager<RootViewModel> { return getCoreState()._stateManager }
 
 let initialViewModelWrapper: any;
@@ -85,6 +95,8 @@ export function initCore(culture: string): void {
         _culture: culture,
         _initialUrl: thisViewModel.url,
         _virtualDirectory: thisViewModel.virtualDirectory!,
+        _routeName: thisViewModel.routeName,
+        _routeParameters: thisViewModel.routeParameters,
         _stateManager: manager
     }
 
@@ -106,6 +118,8 @@ export function initCore(culture: string): void {
                 _culture: currentCoreState!._culture,
                 _initialUrl: a.serverResponseObject.url,
                 _virtualDirectory: a.serverResponseObject.virtualDirectory!,
+                _routeName: a.serverResponseObject.routeName,
+                _routeParameters: a.serverResponseObject.routeParameters,
                 _stateManager: currentCoreState!._stateManager
             }
         });

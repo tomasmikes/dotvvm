@@ -14,10 +14,10 @@
             var viewModelStateSnapshot = await DotvvmPage.GetViewModelSnapshot();
             await DisplayAlert("View Model State", viewModelStateSnapshot, "OK");
         }
-        
+
         private async void PatchViewModelStateButton_Clicked(object sender, EventArgs e)
         {
-           await DotvvmPage.PatchViewModel(new { Count = 10 });
+            await DotvvmPage.PatchViewModel(new { Count = 10 });
         }
     }
 }

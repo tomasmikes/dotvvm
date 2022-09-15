@@ -1,4 +1,6 @@
-﻿type WebViewMessageEnvelope = {
+﻿import { initCompleted, spaNavigated } from "../events";
+
+type WebViewMessageEnvelope = {
     type: string;
     messageId: number;
     payload: any;
@@ -15,8 +17,11 @@ type HttpRequestOutputMessage = {
     bodyString: string;
 };
 type HandlerCommandMessage = {
-    action: string;
     content: string;
+};
+type NavigationCompletedMessage = {
+    routeName: string;
+    routeParameters: { key: string, value: string }[];
 };
 
 const pendingRequests: { resolve: (result: any) => void, reject: (result: any) => void }[] = [];
@@ -40,6 +45,20 @@ export async function sendMessageAndWaitForResponse<T>(messageType: string, mess
     return await promise;
 }
 
+function processMessage(envelope: WebViewMessageEnvelope) {
+    if (envelope.type == "GetViewModelSnapshot") {
+        const message: HandlerCommandMessage = {
+            content: JSON.stringify(dotvvm.state)
+        };
+        return message;
+    } else if (envelope.type == "PatchViewModel") {
+        dotvvm.patchState(envelope.payload);
+        return;
+    } else {
+        throw `Command ${envelope.type} not found!`;
+    }
+}
+
 // handle commands from the webview
 (window.external as any).receiveMessage(async (json: any) => {
 
@@ -57,17 +76,8 @@ export async function sendMessageAndWaitForResponse<T>(messageType: string, mess
             promise.resolve(response);
             return;
 
-        } else if (envelope.type == "GetViewModelSnapshot") {
-            const message: HandlerCommandMessage = {
-                action: envelope.type,
-                content: JSON.stringify(dotvvm.state)
-            };
-            return message;
-        } else if (envelope.type == "PatchViewModel") {
-            dotvvm.patchState(envelope.payload);
-            return;
         } else {
-            throw `Command ${envelope.type} not found!`;
+            return processMessage(envelope);
         }
     }
 
@@ -76,7 +86,7 @@ export async function sendMessageAndWaitForResponse<T>(messageType: string, mess
         const response = await processRequestOrResponse(envelope);
         if (typeof response !== "undefined") {
             sendMessage({
-                type: "HandlerCommand",
+                type: envelope.type,
                 messageId: envelope.messageId,
                 payload: response
             });
@@ -84,7 +94,7 @@ export async function sendMessageAndWaitForResponse<T>(messageType: string, mess
     }
     catch (err) {
         sendMessage({
-            type: "HandlerCommand",
+            type: "ErrorOccurred",
             messageId: envelope.messageId,
             errorMessage: JSON.stringify(err)
         });
@@ -106,3 +116,23 @@ export async function webMessageFetch(url: string, init: RequestInit): Promise<R
 
     return await sendMessageAndWaitForResponse<Response>("HttpRequest", message);
 }
+
+function notifyNavigationCompleted() {
+    const message: NavigationCompletedMessage = {
+        routeName: dotvvm.routeName,
+        routeParameters: dotvvm.routeParameters
+    };
+    sendMessage({
+        type: "NavigationCompleted",
+        messageId: 5,
+        payload: message
+    });
+}
+
+initCompleted.subscribe(() => {
+    notifyNavigationCompleted();
+});
+
+spaNavigated.subscribe(() => {
+    notifyNavigationCompleted();
+});

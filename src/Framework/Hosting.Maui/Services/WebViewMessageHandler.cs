@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using DotVVM.Framework.Configuration;
+using DotVVM.Framework.Hosting.Maui.Controls;
 using DotVVM.Framework.Hosting.Maui.Services.Messaging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,8 +10,9 @@ namespace DotVVM.Framework.Hosting.Maui.Services;
 
 public class WebViewMessageHandler
 {
-    private readonly DotvvmWebRequestHandler dotvvmWebRequestHandler;
+    private DotvvmWebViewHandler webViewHandler;
 
+    private readonly DotvvmWebRequestHandler dotvvmWebRequestHandler;
     private readonly Lazy<JsonSerializerSettings> serializerSettings;
     private readonly Lazy<JsonSerializer> serializer;
 
@@ -30,6 +32,8 @@ public class WebViewMessageHandler
         this.dotvvmWebRequestHandler = dotvvmWebRequestHandler;
     }
 
+    public void AttachWebViewHandler(DotvvmWebViewHandler webViewHandler) => this.webViewHandler = webViewHandler;
+
     public async Task<T> WaitForMessage<T>(int messageId)
     {
         var source = new TaskCompletionSource<string>();
@@ -48,29 +52,28 @@ public class WebViewMessageHandler
             var request = message.Payload.ToObject<HttpRequestInputMessage>(serializer.Value);
             response = await ProcessHttpRequest(request);
         }
-        else if (message.Type == "HandlerCommand")
+        else if (message.Type == "GetViewModelSnapshot" || message.Type == "PatchViewModelState")
         {
             var request = message.Payload.ToObject<HandlerCommandMessage>(serializer.Value);
-
-            switch (request.Action)
-            {
-                case "GetViewModelState":
-                    break;
-                case "PatchViewModelState":
-                    break;
-                default:
-                    // TODO: maybe throw exception about unknown command
-                    break;
-            }
 
             incomingMessageQueue[message.MessageId]
                 .SetResult(JsonConvert.SerializeObject(request.Content, serializerSettings.Value));
             return null;
         }
+        else if (message.Type == "NavigationCompleted")
+        {
+            var request = message.Payload.ToObject<NavigationCompletedMessage>(serializer.Value);
+            webViewHandler.RouteName = request.RouteName;
+            webViewHandler.VirtualView.RouteName = request.RouteName;
+            return null;
+        }
+        else if (message.Type == "ErrorOccurred")
+        {
+            throw new Exception(message.ErrorMessage);
+        }
         else
         {
-            // TODO: maybe throw exception about unknown command
-            response = null;
+            throw new Exception($"Unknown command '{message.Type}'.");
         }
 
         // if the message was request, produce a response; otherwise return null

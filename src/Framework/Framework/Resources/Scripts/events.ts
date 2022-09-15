@@ -55,6 +55,7 @@ export class DotvvmEvent<T> {
 
 export const init = new DotvvmEvent<DotvvmInitEventArgs>("dotvvm.events.init", true);
 export const initCompleted = new DotvvmEvent<DotvvmInitCompletedEventArgs>("dotvvm.events.initCompleted", true);
+export const spaNavigated = new DotvvmEvent<DotvvmSpaNavigatedEventArgs>("dotvvm.events.spaNavigated", true);
 export const beforePostback = new DotvvmEvent<DotvvmBeforePostBackEventArgs>("dotvvm.events.beforePostback");
 export const afterPostback = new DotvvmEvent<DotvvmAfterPostBackEventArgs>("dotvvm.events.afterPostback");
 export const error = new DotvvmEvent<DotvvmErrorEventArgs>("dotvvm.events.error");
