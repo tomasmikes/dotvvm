@@ -7,6 +7,7 @@ public partial class DotvvmWebViewHandler
 {
     internal readonly WebViewMessageHandler _messageHandler;
     internal Action<ExternalLinkNavigationEventArgs>? ExternalNavigationStarting;
+    internal Action<PageNotificationEventArgs>? PageNotificationReceived;
 
     private string routeName;
 
@@ -47,6 +48,7 @@ public partial class DotvvmWebViewHandler
     /// </summary>
     public static readonly PropertyMapper<IDotvvmWebView, DotvvmWebViewHandler> DotvvmWebViewMapper = new(ViewMapper) {
         [nameof(IDotvvmWebView.ExternalNavigationStarting)] = MapNotifyExternalNavigationStarting,
+        [nameof(IDotvvmWebView.PageNotificationReceived)] = MapPageNotificationReceived,
         [nameof(IDotvvmWebView.RouteName)] = MapRouteName,
         [nameof(IDotvvmWebView.Url)] = MapUrl
     };
@@ -103,6 +105,19 @@ public partial class DotvvmWebViewHandler
         if (webView is DotvvmWebView dotvvmWebView)
         {
             handler.ExternalNavigationStarting = dotvvmWebView.NotifyExternalNavigationStarting;
+        }
+    }
+
+    /// <summary>
+    /// Maps the <see cref="DotvvmWebView.MapPageNotificationReceived"/> property to the specified handler.
+    /// </summary>
+    /// <param name="handler">The <see cref="DotvvmWebViewHandler"/>.</param>
+    /// <param name="webView">The <see cref="IDotvvmWebView"/>.</param>
+    public static void MapPageNotificationReceived(DotvvmWebViewHandler handler, IDotvvmWebView webView)
+    {
+        if (webView is DotvvmWebView dwv)
+        {
+            handler.PageNotificationReceived = dwv.NotifyPageNotificationReceived;
         }
     }
 

@@ -2,7 +2,7 @@
 
 type WebViewMessageEnvelope = {
     type: string;
-    messageId: number;
+    messageId?: number;
     payload: any;
 };
 type HttpRequestInputMessage = {
@@ -16,30 +16,34 @@ type HttpRequestOutputMessage = {
     headers: { key: string, value: string }[];
     bodyString: string;
 };
-type HandlerCommandMessage = {
+type PatchViewModelMessage = {
     content: string;
 };
 type NavigationCompletedMessage = {
     routeName: string;
     routeParameters: { key: string, value: string }[];
 };
+type PageNotificationMessage = {
+    methodName: string;
+    args: any[];
+};
 
 const pendingRequests: { resolve: (result: any) => void, reject: (result: any) => void }[] = [];
 
 // send messages
-export function sendMessage(message: any) {
+export function sendMessage(message: WebViewMessageEnvelope) {
     (window.external as any).sendMessage(message);
 }
 
 export async function sendMessageAndWaitForResponse<T>(messageType: string, message: any): Promise<T> {
-    const envelope = {
+    const envelope: WebViewMessageEnvelope = {
         type: messageType,
         messageId: pendingRequests.length,
         payload: message
     };
 
     const promise = new Promise<T>((resolve, reject) => {
-        pendingRequests[envelope.messageId] = { resolve, reject };
+        pendingRequests[envelope.messageId!] = { resolve, reject };
         sendMessage(envelope);
     });
     return await promise;
@@ -47,10 +51,9 @@ export async function sendMessageAndWaitForResponse<T>(messageType: string, mess
 
 function processMessage(envelope: WebViewMessageEnvelope) {
     if (envelope.type == "GetViewModelSnapshot") {
-        const message: HandlerCommandMessage = {
+        return <PatchViewModelMessage>{
             content: JSON.stringify(dotvvm.state)
         };
-        return message;
     } else if (envelope.type == "PatchViewModel") {
         dotvvm.patchState(envelope.payload);
         return;
@@ -66,7 +69,7 @@ function processMessage(envelope: WebViewMessageEnvelope) {
 
         if (envelope.type === "HttpRequest") {
             // handle incoming HTTP request responses
-            const promise = pendingRequests[envelope.messageId]
+            const promise = pendingRequests[envelope.messageId!]
             const message = <HttpRequestOutputMessage>envelope.payload;
             const headers = new Headers();
             for (const h of message.headers) {
@@ -85,7 +88,7 @@ function processMessage(envelope: WebViewMessageEnvelope) {
     try {
         const response = await processRequestOrResponse(envelope);
         if (typeof response !== "undefined") {
-            sendMessage({
+            sendMessage(<WebViewMessageEnvelope>{
                 type: envelope.type,
                 messageId: envelope.messageId,
                 payload: response
@@ -93,10 +96,10 @@ function processMessage(envelope: WebViewMessageEnvelope) {
         }
     }
     catch (err) {
-        sendMessage({
+        sendMessage(<WebViewMessageEnvelope>{
             type: "ErrorOccurred",
             messageId: envelope.messageId,
-            errorMessage: JSON.stringify(err)
+            payload: JSON.stringify(err)
         });
     }
 });
@@ -108,7 +111,7 @@ export async function webMessageFetch(url: string, init: RequestInit): Promise<R
 
     const message: HttpRequestInputMessage = {
         url,
-        method: init.method,
+        method: init.method!,
         headers: [],
         bodyString: init.body as string
     };
@@ -117,15 +120,23 @@ export async function webMessageFetch(url: string, init: RequestInit): Promise<R
     return await sendMessageAndWaitForResponse<Response>("HttpRequest", message);
 }
 
+function sendPageNotification(methodName: string, args: any[]) {
+    sendMessage({
+        type: "PageNotification",
+        payload: <PageNotificationMessage>{
+            methodName: methodName,
+            args: args
+        }
+    });
+}
+
 function notifyNavigationCompleted() {
-    const message: NavigationCompletedMessage = {
-        routeName: dotvvm.routeName,
-        routeParameters: dotvvm.routeParameters
-    };
     sendMessage({
         type: "NavigationCompleted",
-        messageId: 5,
-        payload: message
+        payload: <NavigationCompletedMessage>{
+            routeName: dotvvm.routeName,
+            routeParameters: dotvvm.routeParameters
+        }
     });
 }
 

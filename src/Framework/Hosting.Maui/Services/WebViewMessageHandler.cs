@@ -46,7 +46,7 @@ public class WebViewMessageHandler
     {
         var message = JsonConvert.DeserializeObject<WebViewMessageEnvelope>(json, serializerSettings.Value);
 
-        object? response;
+        object? response = null;
         if (message.Type == "HttpRequest")
         {
             var request = message.Payload.ToObject<HttpRequestInputMessage>(serializer.Value);
@@ -54,18 +54,21 @@ public class WebViewMessageHandler
         }
         else if (message.Type == "GetViewModelSnapshot" || message.Type == "PatchViewModelState")
         {
-            var request = message.Payload.ToObject<HandlerCommandMessage>(serializer.Value);
+            var payload = message.Payload.ToObject<PatchViewModelMessage>(serializer.Value);
 
             incomingMessageQueue[message.MessageId]
-                .SetResult(JsonConvert.SerializeObject(request.Content, serializerSettings.Value));
-            return null;
+                .SetResult(JsonConvert.SerializeObject(payload.Content, serializerSettings.Value));
         }
         else if (message.Type == "NavigationCompleted")
         {
-            var request = message.Payload.ToObject<NavigationCompletedMessage>(serializer.Value);
-            webViewHandler.RouteName = request.RouteName;
-            webViewHandler.VirtualView.RouteName = request.RouteName;
-            return null;
+            var payload = message.Payload.ToObject<NavigationCompletedMessage>(serializer.Value);
+            webViewHandler.RouteName = payload.RouteName;
+            webViewHandler.VirtualView.RouteName = payload.RouteName;
+        }
+        else if (message.Type == "PageNotification")
+        {
+            var args = message.Payload.ToObject<PageNotificationEventArgs>(serializer.Value);
+            webViewHandler.PageNotificationReceived?.Invoke(args);
         }
         else if (message.Type == "ErrorOccurred")
         {

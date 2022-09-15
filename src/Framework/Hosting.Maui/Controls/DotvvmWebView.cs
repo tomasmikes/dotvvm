@@ -32,10 +32,16 @@ public class DotvvmWebView : View, IDotvvmWebView
 
     /// <inheritdoc/>
     public event EventHandler<ExternalLinkNavigationEventArgs>? ExternalNavigationStarting;
+    public event EventHandler<PageNotificationEventArgs>? PageNotificationReceived;
 
     internal void NotifyExternalNavigationStarting(ExternalLinkNavigationEventArgs args)
     {
         ExternalNavigationStarting?.Invoke(this, args);
+    }
+
+    internal void NotifyPageNotificationReceived(PageNotificationEventArgs args)
+    {
+        PageNotificationReceived?.Invoke(this, args);
     }
 
     public Task<dynamic> GetViewModelSnapshot()

@@ -16,9 +16,15 @@ public interface IDotvvmWebView : IView
 	/// </summary>
 	string Url { get; set; }
 
-	/// <summary>
-	/// Allows customizing how external links are opened.
-	/// Opens external links in the system browser by default.
-	/// </summary>
-	event EventHandler<ExternalLinkNavigationEventArgs>? ExternalNavigationStarting;
+    /// <summary>
+    /// Allows customizing how external links are opened.
+    /// Opens external links in the system browser by default.
+    /// <see cref="DotvvmWebView.NotifyExternalNavigationStarting(ExternalLinkNavigationEventArgs)"/>
+    /// </summary>
+    event EventHandler<ExternalLinkNavigationEventArgs>? ExternalNavigationStarting;
+
+    /// <summary>
+    /// Occurs when the page tries to notify the host window using <see cref="DotvvmWebView.NotifyPageNotificationReceived(PageNotificationEventArgs)"/>.
+    /// </summary>
+    event EventHandler<PageNotificationEventArgs>? PageNotificationReceived;
 }
