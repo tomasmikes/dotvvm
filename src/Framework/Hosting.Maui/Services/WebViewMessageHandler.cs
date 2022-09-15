@@ -55,15 +55,20 @@ public class WebViewMessageHandler
         else if (message.Type == "GetViewModelSnapshot" || message.Type == "PatchViewModelState")
         {
             var payload = message.Payload.ToObject<PatchViewModelMessage>(serializer.Value);
-
+            
             incomingMessageQueue[message.MessageId]
                 .SetResult(JsonConvert.SerializeObject(payload.Content, serializerSettings.Value));
         }
-        else if (message.Type == "NavigationCompleted")
+        else if (message.Type == "InitCompleted")
         {
-            var payload = message.Payload.ToObject<NavigationCompletedMessage>(serializer.Value);
+            // dottvm is initialized and navigation is completed
+
+            var payload = message.Payload.ToObject<InitCompletedMessage>(serializer.Value);
+
             webViewHandler.RouteName = payload.RouteName;
             webViewHandler.VirtualView.RouteName = payload.RouteName;
+
+            webViewHandler.IsPageLoaded = true;
         }
         else if (message.Type == "PageNotification")
         {

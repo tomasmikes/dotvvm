@@ -1,6 +1,6 @@
 ﻿namespace DotVVM.Framework.Hosting.Maui.Services.Messaging;
 
-public class NavigationCompletedMessage
+public class InitCompletedMessage
 {
     public string RouteName { get; set; }
 

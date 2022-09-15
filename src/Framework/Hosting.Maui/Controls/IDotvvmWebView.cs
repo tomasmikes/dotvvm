@@ -17,6 +17,11 @@ public interface IDotvvmWebView : IView
 	string Url { get; set; }
 
     /// <summary>
+    /// Indicates wheter initialization of page is completed.
+    /// </summary>
+    bool IsPageLoaded { get; set; }
+
+    /// <summary>
     /// Allows customizing how external links are opened.
     /// Opens external links in the system browser by default.
     /// <see cref="DotvvmWebView.NotifyExternalNavigationStarting(ExternalLinkNavigationEventArgs)"/>

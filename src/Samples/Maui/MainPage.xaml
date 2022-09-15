@@ -6,7 +6,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50" />
-            <RowDefinition Height="100" />
+            <RowDefinition Height="150" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -18,10 +18,15 @@
         <VerticalStackLayout Grid.Row="1">
             <Button Text="Patch View Model" Clicked="PatchViewModelStateButton_Clicked" />
             <Button Text="Get ViewModel State" Clicked="GetViewModelStateButton_Clicked" />
+            <HorizontalStackLayout>
+                <Label Text="Page loaded: "/>
+                <Label Text="{Binding IsPageLoaded}" />
+            </HorizontalStackLayout>
         </VerticalStackLayout>
 
         <dotvvm:DotvvmWebView x:Name="DotvvmPage" 
                               RouteName="{Binding RouteName}"
+                              IsPageLoaded="{Binding IsPageLoaded}"
                               Grid.Row="2" />
     </Grid>
 

@@ -16,6 +16,17 @@ namespace DotVVM.Samples.BasicSamples.Maui
             }
         }
 
+        private bool isPageLoaded;
+        public bool IsPageLoaded
+        {
+            get { return isPageLoaded; }
+            set
+            {
+                isPageLoaded = value;
+                OnPropertyChanged();
+            }
+        }
+
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName!));

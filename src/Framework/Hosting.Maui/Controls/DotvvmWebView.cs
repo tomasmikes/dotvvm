@@ -30,6 +30,15 @@ public class DotvvmWebView : View, IDotvvmWebView
     public static readonly BindableProperty UrlProperty =
         BindableProperty.Create(nameof(Url), typeof(string), typeof(DotvvmWebView), "", BindingMode.TwoWay);
 
+    public bool IsPageLoaded
+    {
+        get { return (bool)GetValue(IsPageLoadedProperty); }
+        set { SetValue(IsPageLoadedProperty, value); }
+    }
+    
+    public static readonly BindableProperty IsPageLoadedProperty =
+        BindableProperty.Create(nameof(IsPageLoaded), typeof(bool), typeof(DotvvmWebView), false, BindingMode.OneWayToSource);
+
     /// <inheritdoc/>
     public event EventHandler<ExternalLinkNavigationEventArgs>? ExternalNavigationStarting;
     public event EventHandler<PageNotificationEventArgs>? PageNotificationReceived;

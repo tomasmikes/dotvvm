@@ -19,7 +19,7 @@ type HttpRequestOutputMessage = {
 type PatchViewModelMessage = {
     content: string;
 };
-type NavigationCompletedMessage = {
+type InitCompletedMessage = {
     routeName: string;
     routeParameters: { key: string, value: string }[];
 };
@@ -132,8 +132,8 @@ function sendPageNotification(methodName: string, args: any[]) {
 
 function notifyNavigationCompleted() {
     sendMessage({
-        type: "NavigationCompleted",
-        payload: <NavigationCompletedMessage>{
+        type: "InitCompleted",
+        payload: <InitCompletedMessage>{
             routeName: dotvvm.routeName,
             routeParameters: dotvvm.routeParameters
         }

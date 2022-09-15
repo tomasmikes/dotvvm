@@ -10,7 +10,6 @@ public partial class DotvvmWebViewHandler
     internal Action<PageNotificationEventArgs>? PageNotificationReceived;
 
     private string routeName;
-
     public string RouteName
     {
         get
@@ -38,6 +37,20 @@ public partial class DotvvmWebViewHandler
             {
                 _webviewManager?.Navigate(value);
             }
+        }
+    }
+
+    private bool isPageLoaded;
+    public bool IsPageLoaded
+    {
+        get
+        {
+            return isPageLoaded;
+        }
+        set
+        {
+            isPageLoaded = value;
+            VirtualView.IsPageLoaded = value;
         }
     }
 

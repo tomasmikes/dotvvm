@@ -137,6 +137,8 @@ public class WindowsWebViewManager : WebViewManager
 
     private void CoreWebView2_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs args)
     {
+        _dotvvmWebViewHandler.IsPageLoaded = false;
+
         if (Uri.TryCreate(args.Uri, UriKind.RelativeOrAbsolute, out var uri) && uri.Host != AppHostAddress)
         {
             var callbackArgs = new ExternalLinkNavigationEventArgs(uri);
