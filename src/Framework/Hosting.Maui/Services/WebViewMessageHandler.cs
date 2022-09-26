@@ -45,6 +45,11 @@ public class WebViewMessageHandler
 
     internal async Task<string?> ProcessRequestOrResponse(string json)
     {
+        if (webViewHandler == null)
+        {
+            throw new Exception($"{nameof(DotvvmWebViewHandler)} is not attached. Use {nameof(AttachWebViewHandler)} method.");
+        }
+
         var message = JsonConvert.DeserializeObject<WebViewMessageEnvelope>(json, serializerSettings.Value);
 
         object? response = null;
@@ -53,10 +58,9 @@ public class WebViewMessageHandler
             var request = message.Payload.ToObject<HttpRequestInputMessage>(serializer.Value);
             response = await ProcessHttpRequest(request);
         }
-        else if (message.Type == "GetViewModelSnapshot" || message.Type == "PatchViewModelState")
+        else if (message.Type == "GetViewModelSnapshot" || message.Type == "PatchViewModel")
         {
-            var payload = message.Payload.ToObject<PatchViewModelMessage>(serializer.Value);
-
+            var payload = message.Payload.ToObject<ResultMessage>(serializer.Value);
             incomingMessageQueue[message.MessageId].SetResult(JsonConvert.SerializeObject(payload.Content, serializerSettings.Value));
         }
         else if (message.Type == "SpaNavigating")

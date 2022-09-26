@@ -16,8 +16,9 @@ type HttpRequestOutputMessage = {
     headers: { key: string, value: string }[];
     bodyString: string;
 };
-type PatchViewModelMessage = {
-    content: string;
+type ResultMessage = {
+    succeeded: boolean;
+    content?: string;
 };
 type NavigationCompletedMessage = {
     routeName: string;
@@ -51,12 +52,21 @@ export async function sendMessageAndWaitForResponse<T>(messageType: string, mess
 
 function processMessage(envelope: WebViewMessageEnvelope) {
     if (envelope.type == "GetViewModelSnapshot") {
-        return <PatchViewModelMessage>{
+        return <ResultMessage>{
             content: JSON.stringify(dotvvm.state)
         };
     } else if (envelope.type == "PatchViewModel") {
-        dotvvm.patchState(envelope.payload);
-        return;
+        const resultMessage: ResultMessage = {
+            succeeded: true
+        };
+        try {
+            dotvvm.patchState(envelope.payload);
+        }
+        catch (err) {
+            resultMessage.succeeded = false;
+            resultMessage.content = JSON.stringify(err);
+        }
+        return resultMessage;
     } else {
         throw `Command ${envelope.type} not found!`;
     }
