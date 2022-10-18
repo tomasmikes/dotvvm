@@ -29,7 +29,7 @@ public partial class DotvvmWebViewHandler
     {
         get
         {
-            return PlatformView.Source?.ToString();
+            return GetUrl();
         }
         set
         {
@@ -50,11 +50,13 @@ public partial class DotvvmWebViewHandler
         set
         {
             isPageLoaded = value;
-            VirtualView.IsPageLoaded = value;
+            ((DotvvmWebView)VirtualView).IsPageLoaded = value;
         }
     }
 
     partial void StartWebViewCoreIfPossible();
+
+    private partial string GetUrl();
 
     /// <summary>
     /// This field is part of MAUI infrastructure and is not intended for use by application code.

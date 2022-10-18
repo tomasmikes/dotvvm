@@ -33,10 +33,10 @@ public class DotvvmWebView : View, IDotvvmWebView
     public bool IsPageLoaded
     {
         get { return (bool)GetValue(IsPageLoadedProperty); }
-        set { SetValue(IsPageLoadedProperty, value); }
+        internal set { SetValue(IsPageLoadedProperty, value); }
     }
     
-    public static readonly BindableProperty IsPageLoadedProperty =
+    internal static readonly BindableProperty IsPageLoadedProperty =
         BindableProperty.Create(nameof(IsPageLoaded), typeof(bool), typeof(DotvvmWebView), false, BindingMode.OneWayToSource);
 
     /// <inheritdoc/>

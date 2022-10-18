@@ -19,7 +19,7 @@ public interface IDotvvmWebView : IView
     /// <summary>
     /// Indicates wheter initialization of page is completed.
     /// </summary>
-    bool IsPageLoaded { get; set; }
+    bool IsPageLoaded { get; }
 
     /// <summary>
     /// Allows customizing how external links are opened.

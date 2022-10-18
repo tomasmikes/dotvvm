@@ -42,6 +42,8 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, WebView2
         Services != null
         && (!string.IsNullOrEmpty(RouteName) || !string.IsNullOrEmpty(Url));
 
+    private partial string GetUrl() => PlatformView.Source?.ToString();
+
     partial void StartWebViewCoreIfPossible()
     {
         if (!RequiredStartupPropertiesSet ||
