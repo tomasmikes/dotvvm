@@ -1,12 +1,12 @@
 import * as events from '../events';
 import * as magicNavigator from '../utils/magic-navigator'
-import { handleSpaNavigationCore } from "../spa/spa";
+import { handleSpaNavigationCore, getSpaPlaceHoldersUniqueId } from "../spa/spa";
 
 export function performRedirect(url: string, replace: boolean, allowSpa: boolean): Promise<any> {
     if (replace) {
         location.replace(url);
         return Promise.resolve();
-    } else if (compileConstants.isSpa && allowSpa) {
+    } else if (compileConstants.isSpa && allowSpa && getSpaPlaceHoldersUniqueId()) {
         return handleSpaNavigationCore(url);
     } else {
         magicNavigator.navigate(url);

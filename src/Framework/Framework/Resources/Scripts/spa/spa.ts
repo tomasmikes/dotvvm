@@ -14,7 +14,8 @@ export const isSpaReady = ko.observable(false);
 export function init(): void {
     const spaPlaceHolders = getSpaPlaceHolders();
     if (spaPlaceHolders.length == 0) {
-        throw new Error("No SpaContentPlaceHolder control was found!");
+        return;
+        //throw new Error("No SpaContentPlaceHolder control was found!");
     }
 
     window.addEventListener("hashchange", event => handleHashChangeWithHistory(spaPlaceHolders, false));
