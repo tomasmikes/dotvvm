@@ -27,6 +27,7 @@
         <dotvvm:DotvvmWebView x:Name="DotvvmPage" 
                               RouteName="{Binding RouteName}"
                               IsPageLoaded="{Binding IsPageLoaded}"
+                              PageNotificationReceived="DotvvmPage_PageNotificationReceived"
                               Grid.Row="2" />
     </Grid>
 

@@ -38,7 +38,6 @@ public class WindowsWebViewManager : WebViewManager
     /// Constructs an instance of <see cref="WindowsWebViewManager"/>.
     /// </summary>
     /// <param name="webview">A <see cref="WebView2Control"/> to access platform-specific WebView2 APIs.</param>
-    /// <param name="services">A service provider containing services to be used by this class and also by application code.</param>
     /// <param name="dispatcher">A <see cref="Dispatcher"/> instance that can marshal calls to the required thread or sync context.</param>
     /// <param name="dotvvmWebRequestHandler">Provides static content to the webview.</param>
     /// <param name="dotvvmWebViewHandler">The <see cref="DotvvmWebViewHandler" />.</param>

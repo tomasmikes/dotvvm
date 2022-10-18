@@ -1,4 +1,6 @@
-﻿namespace DotVVM.Samples.BasicSamples.Maui
+﻿using Newtonsoft.Json;
+
+namespace DotVVM.Samples.BasicSamples.Maui
 {
     public partial class MainPage : ContentPage
     {
@@ -18,6 +20,11 @@
         private async void PatchViewModelStateButton_Clicked(object sender, EventArgs e)
         {
             await DotvvmPage.PatchViewModel(new { Count = 10 });
+        }
+
+        private async void DotvvmPage_PageNotificationReceived(object sender, Framework.Hosting.Maui.Controls.PageNotificationEventArgs e)
+        {
+            await DisplayAlert("PageNotification", e.MethodName + "(" + string.Join(", ", e.Arguments.Select(JsonConvert.SerializeObject)) + ")", "OK");
         }
     }
 }

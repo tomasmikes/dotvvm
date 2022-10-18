@@ -58,6 +58,7 @@
 	<ItemGroup>
 	  <Folder Include="HostedApp\wwwroot\" />
 	  <Folder Include="HostedApp\wwwroot\" />
+	  <Folder Include="HostedApp\wwwroot\" />
 	</ItemGroup>
 
 </Project>
