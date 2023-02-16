@@ -1,31 +1,42 @@
-﻿using DotVVM.Framework.Hosting.Maui.Controls;
-using DotVVM.Framework.Hosting.Maui.Platforms.Windows.Services;
+﻿using System.Runtime.Versioning;
 using DotVVM.Framework.Hosting.Maui.Services;
 using Microsoft.Maui.Handlers;
-using WebView2Control = Microsoft.UI.Xaml.Controls.WebView2;
+using static Android.Views.ViewGroup;
+using AWebView = Android.Webkit.WebView;
 
 namespace DotVVM.Framework.Hosting.Maui.Controls;
 
-public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, WebView2Control>
+public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView>
 {
-    private WindowsWebViewManager? _webviewManager;
+    private AndroidWebViewManager? _webviewManager;
+
+    private partial string GetUrl() => PlatformView.Url;
 
     /// <inheritdoc />
-    protected override WebView2Control CreatePlatformView()
+    protected override AWebView CreatePlatformView()
     {
-        return new WebView2Control();
-    }
+        var dotvvmAndroidWebView = new AWebView(Context)
+        {
+            LayoutParameters = new Android.Widget.AbsoluteLayout.LayoutParams(LayoutParams.MatchParent, LayoutParams.MatchParent, 0, 0)
+        };
 
-    protected override void ConnectHandler(WebView2Control nativeView)
-    {
-        base.ConnectHandler(nativeView);
+        if (dotvvmAndroidWebView.Settings != null)
+        {
+            // To allow overriding UrlLoadingStrategy.OpenInWebView and open links in browser with a _blank target
+            dotvvmAndroidWebView.Settings.SetSupportMultipleWindows(true);
 
-        StartWebViewCoreIfPossible();
+            dotvvmAndroidWebView.Settings.JavaScriptEnabled = true;
+            dotvvmAndroidWebView.Settings.DomStorageEnabled = true;
+        }
+
+        return dotvvmAndroidWebView;
     }
 
     /// <inheritdoc />
-    protected override void DisconnectHandler(WebView2Control platformView)
+    protected override void DisconnectHandler(AWebView platformView)
     {
+        platformView.StopLoading();
+
         if (_webviewManager != null)
         {
             // Dispose this component's contents and block on completion so that user-written disposal logic and
@@ -44,8 +55,6 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, WebView2
         Services != null
         && (!string.IsNullOrEmpty(RouteName) || !string.IsNullOrEmpty(Url));
 
-    private partial string GetUrl() => PlatformView.Source?.ToString();
-
     partial void StartWebViewCoreIfPossible()
     {
         if (!RequiredStartupPropertiesSet ||
@@ -63,12 +72,10 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, WebView2
         var webRequestHandler = Services!.GetRequiredService<DotvvmWebRequestHandler>();
         var webViewMessageHandler = Services!.GetRequiredService<WebViewMessageHandler>();
 
-        _webviewManager = new WindowsWebViewManager(
+        _webviewManager = new AndroidWebViewManager(
             PlatformView,
             webViewMessageHandler,
-            Dispatcher.GetForCurrentThread()!,
-            webRequestHandler,
-            this);
+            Dispatcher.GetForCurrentThread()!);
 
         webViewMessageHandler.AttachWebViewHandler(this);
 

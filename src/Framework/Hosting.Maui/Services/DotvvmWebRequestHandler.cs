@@ -1,54 +1,35 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace DotVVM.Framework.Hosting.Maui.Services
+﻿namespace DotVVM.Framework.Hosting.Maui.Services
 {
     public class DotvvmWebRequestHandler
     {
         private readonly IServiceScopeFactory serviceScopeFactory;
-        private readonly RequestDelegate requestDelegate;
+        private readonly DotvvmMiddleware dotvvmMiddleware;
 
-        public DotvvmWebRequestHandler(IServiceScopeFactory serviceScopeFactory, RequestDelegate requestDelegate)
+        public DotvvmWebRequestHandler(IServiceScopeFactory serviceScopeFactory, DotvvmMiddleware dotvvmMiddleware)
         {
             this.serviceScopeFactory = serviceScopeFactory;
-            this.requestDelegate = requestDelegate;
+            this.dotvvmMiddleware = dotvvmMiddleware;
         }
 
         public async Task<DotvvmResponse> ProcessRequest(Uri requestUri, string method, IEnumerable<KeyValuePair<string, string>> headers, Stream contentStream)
         {
 			using var scope = serviceScopeFactory.CreateScope();
-			var httpContext = new DefaultHttpContext()
-			{
-				Request =
-				{
-					Scheme = requestUri.Scheme,
-					Host = new HostString(requestUri.Host, requestUri.Port),
-					Path = requestUri.PathAndQuery,
-					Method = method
-				},
-				Response =
-				{
-					Body = new MemoryStream()
-				},
-				ServiceScopeFactory = serviceScopeFactory,
-				RequestServices = scope.ServiceProvider
-			};
-			foreach (var header in headers)
-			{
-				httpContext.Request.Headers.Add(header.Key, header.Value);
-			}			
-			if (contentStream != null)
-			{
-				httpContext.Request.Body = contentStream;
-			}
-			await requestDelegate(httpContext);
+			
+            var request = new DotvvmRequest(requestUri, method, headers, contentStream);
+			var context = await dotvvmMiddleware.Invoke(request, scope);
 
 			return new DotvvmResponse(
-				httpContext.Response.StatusCode,
-				httpContext.Response.Headers.SelectMany(h => h.Value.Select(v => new KeyValuePair<string, string>(h.Key, v))),
-				(MemoryStream)httpContext.Response.Body);
+				context.Response.StatusCode,
+                context.Response.Headers.SelectMany(h => h.Value.Select(v => new KeyValuePair<string, string>(h.Key, v))),
+				(MemoryStream)context.Response.Body);
 		}
 
     }
 
     public record DotvvmResponse(int StatusCode, IEnumerable<KeyValuePair<string, string>> Headers, MemoryStream Content);
+
+    public record DotvvmRequest(Uri RequestUri,
+        string Method,
+        IEnumerable<KeyValuePair<string, string>> Headers,
+        Stream ContentStream);
 }

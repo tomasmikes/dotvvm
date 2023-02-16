@@ -24,7 +24,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Hosting.AspNetCore\DotVVM.Framework.Hosting.AspNetCore.csproj" />
+	  <ProjectReference Include="..\Framework\DotVVM.Framework.csproj" />
 	</ItemGroup>
 
 </Project>

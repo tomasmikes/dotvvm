@@ -1,15 +1,16 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Net;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Storage.Streams;
+using DotVVM.Framework.Hosting.Maui.Controls;
+using DotVVM.Framework.Hosting.Maui.Services;
 using Microsoft.Web.WebView2.Core;
 using WebView2Control = Microsoft.UI.Xaml.Controls.WebView2;
 using Launcher = Windows.System.Launcher;
-using DotVVM.Framework.Hosting.Maui.Controls;
-using Windows.Storage.Streams;
-using System.Net;
-using System.Runtime.InteropServices.WindowsRuntime;
 
-namespace DotVVM.Framework.Hosting.Maui.Services;
+namespace DotVVM.Framework.Hosting.Maui.Platforms.Windows.Services;
 
 /// <summary>
 /// An implementation of <see cref="WebViewManager"/> that uses the Edge WebView2 browser control
