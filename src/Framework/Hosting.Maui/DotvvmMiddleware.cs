@@ -221,7 +221,11 @@ namespace DotVVM.Framework.Hosting.Maui
         public IHeaderCollection Headers { get; }
         public IHttpContext Context { get; }
         public int StatusCode { get; set; }
-        public string ContentType { get; set; }
+        public string ContentType
+        {
+            get => Headers["content-type"];
+            set => Headers["content-type"] = value;
+        }
         public Stream Body { get; set; }
 
         public DotvvmHttpResponse(DotvvmHttpContext dotvvmHttpContext)
@@ -229,6 +233,7 @@ namespace DotVVM.Framework.Hosting.Maui
             Context = dotvvmHttpContext;
             Headers = new DotvvmHeaderCollection();
             Body = new MemoryStream();
+            StatusCode = 200;
         }
 
         public void Write(string text) => Body.Write(Encoding.UTF8.GetBytes(text));
@@ -252,7 +257,7 @@ namespace DotVVM.Framework.Hosting.Maui
 
     public class DotvvmHeaderCollection : IHeaderCollection
     {
-        private Dictionary<string, string[]> items = new();
+        private Dictionary<string, string[]> items = new(StringComparer.OrdinalIgnoreCase);
 
         public IEnumerator<KeyValuePair<string, string[]>> GetEnumerator() => items.GetEnumerator();
 
@@ -288,7 +293,7 @@ namespace DotVVM.Framework.Hosting.Maui
 
         public string this[string key]
         {
-            get => string.Join(",", items[key]);
+            get => items.TryGetValue(key, out var result) ? string.Join(",", result) : null;
             set => items[key] = new[] { value };
         }
 
