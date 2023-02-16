@@ -1,5 +1,8 @@
-﻿using DotVVM.Framework.Configuration;
+﻿using DotVVM.Framework.Compilation;
+using DotVVM.Framework.Compilation.ControlTree;
+using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Diagnostics;
+using DotVVM.Framework.Hosting.Middlewares;
 using DotVVM.Framework.Runtime.Tracing;
 using DotVVM.Framework.Security;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -15,11 +18,15 @@ namespace DotVVM.Framework.Hosting.Maui
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
         // ReSharper disable once InconsistentNaming
-        public static IServiceCollection AddDotVVM<TServiceConfigurator>(this IServiceCollection services)
+        public static IServiceCollection AddDotVVM<TServiceConfigurator, TDotvvmStartup>(this IServiceCollection services,
+            string applicationRootPath,
+            Action<DotvvmConfiguration> modifyConfiguration = null)
             where TServiceConfigurator : IDotvvmServiceConfigurator, new()
+            where TDotvvmStartup : IDotvvmStartup, new()
         {
             var configurator = new TServiceConfigurator();
-            return services.AddDotVVM(configurator);
+            var startup = new TDotvvmStartup();
+            return services.AddDotVVM(configurator, startup, applicationRootPath, modifyConfiguration);
         }
 
         /// <summary>
@@ -27,7 +34,11 @@ namespace DotVVM.Framework.Hosting.Maui
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
         /// <param name="configurator">The <see cref="IDotvvmServiceConfigurator"/> instance.</param>
-        public static IServiceCollection AddDotVVM(this IServiceCollection services, IDotvvmServiceConfigurator configurator)
+        public static IServiceCollection AddDotVVM(this IServiceCollection services,
+            IDotvvmServiceConfigurator configurator,
+            IDotvvmStartup startup,
+            string applicationRootPath,
+            Action<DotvvmConfiguration> modifyConfiguration = null)
         {
             AddDotVVMServices(services);
 
@@ -37,17 +48,12 @@ namespace DotVVM.Framework.Hosting.Maui
             configurator.ConfigureServices(dotvvmServices);
             startupTracer.TraceEvent(StartupTracingConstants.DotvvmConfigurationUserServicesRegistrationFinished);
 
-            return services;
-        }
+            services.TryAddSingleton<DotvvmMiddleware>(provider => 
+            {
+                var config = provider.GetRequiredService<DotvvmConfiguration>();
+                return CreateDotvvmMiddleware(provider, config, startup, applicationRootPath, modifyConfiguration);
+            });
 
-        /// <summary>
-        /// Adds DotVVM services with authorization and data protection to the specified <see cref="IServiceCollection" />.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-        // ReSharper disable once InconsistentNaming
-        public static IServiceCollection AddDotVVM(this IServiceCollection services)
-        {
-            AddDotVVMServices(services);
             return services;
         }
 
@@ -56,16 +62,8 @@ namespace DotVVM.Framework.Hosting.Maui
         {
             startupTracer.TraceEvent(StartupTracingConstants.AddDotvvmStarted);
 
-            var addAuthorizationMethod =
-                Type.GetType("Microsoft.Extensions.DependencyInjection.AuthorizationServiceCollectionExtensions, Microsoft.AspNetCore.Authorization", throwOnError: false)
-                    ?.GetMethod("AddAuthorization", new[] { typeof(IServiceCollection) })
-                ?? Type.GetType("Microsoft.Extensions.DependencyInjection.PolicyServiceCollectionExtensions, Microsoft.AspNetCore.Authorization.Policy", throwOnError: false)
-                    ?.GetMethod("AddAuthorization", new[] { typeof(IServiceCollection) })
-                ?? throw new InvalidOperationException("Unable to find ASP.NET Core AddAuthorization method. You are probably using an incompatible version of ASP.NET Core.");
-            addAuthorizationMethod.Invoke(null, new object[] { services });
-
             Microsoft.Extensions.DependencyInjection.DotvvmServiceCollectionExtensions.RegisterDotVVMServices(services);
-
+                        
             services.TryAddSingleton<IViewModelProtector, WebViewViewModelProtector>();
             services.TryAddSingleton<IEnvironmentNameProvider, WebViewEnvironmentNameProvider>();
             services.TryAddSingleton<IRequestCancellationTokenProvider, RequestCancellationTokenProvider>();
@@ -73,6 +71,52 @@ namespace DotVVM.Framework.Hosting.Maui
             services.TryAddScoped<IDotvvmRequestContext>(s => s.GetRequiredService<DotvvmRequestContextStorage>().Context);
 
             services.TryAddSingleton<IStartupTracer>(startupTracer);
+        }
+
+        private static DotvvmMiddleware CreateDotvvmMiddleware(IServiceProvider provider,
+            DotvvmConfiguration config,
+            IDotvvmStartup startup,
+            string applicationRootPath,
+            Action<DotvvmConfiguration> modifyConfiguration)
+        {
+            config.ApplicationPhysicalPath = applicationRootPath;
+
+            startupTracer.TraceEvent(StartupTracingConstants.DotvvmConfigurationUserConfigureStarted);
+            startup.Configure(config, applicationRootPath);
+            startupTracer.TraceEvent(StartupTracingConstants.DotvvmConfigurationUserConfigureFinished);
+
+            modifyConfiguration?.Invoke(config);
+            config.Diagnostics.Apply(config);
+            config.Freeze();
+            // warm up the resolver in the background
+            Task.Run(() => provider.GetService(typeof(IControlResolver)));
+            Task.Run(() => VisualStudioHelper.DumpConfiguration(config, config.ApplicationPhysicalPath));
+
+            startupTracer.TraceEvent(StartupTracingConstants.UseDotvvmStarted);
+
+            var middlewares = new List<IMiddleware>()
+            {
+                ActivatorUtilities.CreateInstance<DotvvmCsrfTokenMiddleware>(provider),
+                ActivatorUtilities.CreateInstance<DotvvmLocalResourceMiddleware>(provider),
+                DotvvmFileUploadMiddleware.TryCreate(provider),
+                ActivatorUtilities.CreateInstance<DotvvmReturnedFileMiddleware>(provider),
+                ActivatorUtilities.CreateInstance<DotvvmRoutingMiddleware>(provider)
+            }.Where(x => x != null)
+            .ToList();
+
+            var middleware = new DotvvmMiddleware(config, middlewares, config.Debug);
+
+            startupTracer.TraceEvent(StartupTracingConstants.UseDotvvmFinished);
+
+            var compilationConfiguration = config.Markup.ViewCompilation;
+            compilationConfiguration.HandleViewCompilation(config, startupTracer);
+
+            if (config.ServiceProvider.GetService<IDiagnosticsInformationSender>() is IDiagnosticsInformationSender sender)
+            {
+                startupTracer.NotifyStartupCompleted(sender);
+            }
+
+            return middleware;
         }
     }
 

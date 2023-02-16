@@ -41,7 +41,7 @@ public static class DotvvmServiceCollectionExtensions
     {
         builder.ConfigureMauiHandlers(handlers => handlers.AddHandler<IDotvvmWebView, DotvvmWebViewHandler>());
 
-        builder.Services.AddDotVVM<TDotvvmServiceConfigurator>();
+        builder.Services.AddDotVVM<TDotvvmServiceConfigurator, TDotvvmStartup>(applicationPath, configure);
         builder.Services.AddSingleton<ICsrfProtector, WebViewCsrfProtector>();
 
         builder.Services.AddSingleton<DotvvmWebRequestHandler>();

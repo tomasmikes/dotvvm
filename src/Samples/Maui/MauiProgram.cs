@@ -27,7 +27,10 @@ namespace DotVVM.Samples.BasicSamples.Maui
             var webRootPath = Path.Combine(path, "HostedApp/wwwroot");
             var applicationPath = Path.Combine(Path.GetDirectoryName(path), "Common");
 
-            builder.AddMauiDotvvmWebView<DotvvmStartup, DotvvmServiceConfigurator>(applicationPath, webRootPath, debug: true);
+            builder.AddMauiDotvvmWebView<DotvvmStartup, DotvvmServiceConfigurator>(applicationPath, webRootPath, debug: true, configure:
+                config => {
+                    config.Markup.ViewCompilation.Mode = Framework.Compilation.ViewCompilationMode.Lazy;
+                });
 
             return builder.Build();
         }
