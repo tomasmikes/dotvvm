@@ -1,6 +1,4 @@
 ﻿using Android.Webkit;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Extensions.FileProviders;
 using AWebView = Android.Webkit.WebView;
 using AUri = Android.Net.Uri;
 using System.Runtime.Versioning;
