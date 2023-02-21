@@ -68,24 +68,23 @@ public partial class DotvvmWebViewHandler
         [nameof(IDotvvmWebView.Url)] = MapUrl
     };
 
+    //    public DotvvmWebViewHandler(WebViewMessageHandler messageHandler, )PropertyMapper? mapper
+    //     : base(mapper ?? DotvvmWebViewMapper)
+    //    {
+    ////#if ANDROID
+    ////        var serviceProvider = MauiApplication.Current.Services;
+    ////        var service = serviceProvider.GetService<WebViewMessageHandler>();
+    ////#endif
+    //    }
+
     /// <summary>
     /// Initializes a new instance of <see cref="DotvvmWebViewHandler"/> with default mappings.
     /// </summary>
-    public DotvvmWebViewHandler(WebViewMessageHandler messageHandler)
-        : this(DotvvmWebViewMapper)
+    public DotvvmWebViewHandler()
+        : base(DotvvmWebViewMapper)
     {
-        _messageHandler = messageHandler;
+        _messageHandler = InstanceHolder.WebViewMessageHandler;
     }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="DotvvmWebViewHandler"/> using the specified mappings.
-    /// </summary>
-    /// <param name="mapper">The property mappings.</param>
-    public DotvvmWebViewHandler(PropertyMapper? mapper)
-        : base(mapper ?? DotvvmWebViewMapper)
-    {
-    }
-
 
     /// <summary>
     /// Maps the <see cref="IDotvvmWebView.HostPage"/> property to the specified handler.

@@ -6,7 +6,7 @@ using System.Runtime.Versioning;
 namespace DotVVM.Framework.Hosting.Maui.Services;
 
 [SupportedOSPlatform("android23.0")]
-internal class AndroidWebViewManager : WebViewManager
+public class AndroidWebViewManager : WebViewManager
 {
     internal static readonly string AppHostAddress = "0.0.0.0";
 
