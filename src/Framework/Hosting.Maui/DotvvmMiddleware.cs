@@ -226,6 +226,14 @@ namespace DotVVM.Framework.Hosting.Maui
             get => Headers["content-type"];
             set => Headers["content-type"] = value;
         }
+        public string MimeType
+        {
+            get => ContentType?.Split(';').FirstOrDefault()?.Trim();
+        }
+        public string CharEncoding
+        {
+            get => ContentType?.Split(';').Length == 2 ? ContentType.Split(';')[1].Replace("charset=", "").Trim() : null;
+        }
         public Stream Body { get; set; }
 
         public DotvvmHttpResponse(DotvvmHttpContext dotvvmHttpContext)

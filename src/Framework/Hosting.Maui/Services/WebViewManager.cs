@@ -10,7 +10,8 @@ namespace DotVVM.Framework.Hosting.Maui.Services;
 /// </summary>
 public abstract class WebViewManager : IAsyncDisposable
 {
-    private readonly WebViewMessageHandler _messageHandler;
+    protected readonly WebViewMessageHandler _messageHandler;
+    protected readonly DotvvmWebRequestHandler _dotvvmWebRequestHandler;
     private readonly IDispatcher _dispatcher;
     private readonly Uri _appBaseUri;
 
@@ -22,9 +23,10 @@ public abstract class WebViewManager : IAsyncDisposable
     /// </summary>
     /// <param name="dispatcher">A <see cref="Dispatcher"/> instance that can marshal calls to the required thread or sync context.</param>
     /// <param name="appBaseUri">The base URI for the application. Since this is a webview, the base URI is typically on a private origin such as http://0.0.0.0/ or app://example/</param>
-    public WebViewManager(WebViewMessageHandler messageHandler, IDispatcher dispatcher, Uri appBaseUri)
+    public WebViewManager(WebViewMessageHandler messageHandler, DotvvmWebRequestHandler dotvvmWebRequestHandler, IDispatcher dispatcher, Uri appBaseUri)
     {
         _messageHandler = messageHandler;
+        _dotvvmWebRequestHandler = dotvvmWebRequestHandler;
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _appBaseUri = EnsureTrailingSlash(appBaseUri ?? throw new ArgumentNullException(nameof(appBaseUri)));
     }
@@ -102,5 +104,10 @@ public abstract class WebViewManager : IAsyncDisposable
         // Do not change this code. Put cleanup code in 'DisposeAsync(bool disposing)' method
         GC.SuppressFinalize(this);
         await DisposeAsyncCore();
+    }
+    
+    public async Task<DotvvmResponse> ProcessRequest(Uri requestUri, string method, IEnumerable<KeyValuePair<string, string>> headers, Stream contentStream)
+    {
+        return await _dotvvmWebRequestHandler.ProcessRequest(requestUri, method, headers, contentStream);
     }
 }

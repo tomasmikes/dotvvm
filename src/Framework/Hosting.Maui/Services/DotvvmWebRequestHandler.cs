@@ -17,16 +17,18 @@
 			
             var request = new DotvvmRequest(requestUri, method, headers, contentStream);
 			var context = await dotvvmMiddleware.Invoke(request, scope);
+            var response = context.Response as DotvvmHttpResponse;
 
 			return new DotvvmResponse(
-				context.Response.StatusCode,
-                context.Response.Headers.SelectMany(h => h.Value.Select(v => new KeyValuePair<string, string>(h.Key, v))),
-				(MemoryStream)context.Response.Body);
+                response.StatusCode,
+                response.Headers.SelectMany(h => h.Value.Select(v => new KeyValuePair<string, string>(h.Key, v))),
+                response.MimeType,
+                response.CharEncoding,
+                (MemoryStream)context.Response.Body);
 		}
-
     }
 
-    public record DotvvmResponse(int StatusCode, IEnumerable<KeyValuePair<string, string>> Headers, MemoryStream Content);
+    public record DotvvmResponse(int StatusCode, IEnumerable<KeyValuePair<string, string>> Headers, string MimeType, string CharEncoding, MemoryStream Content);
 
     public record DotvvmRequest(Uri RequestUri,
         string Method,

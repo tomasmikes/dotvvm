@@ -1,4 +1,4 @@
-﻿using System.Runtime.Versioning;
+﻿using Android.Webkit;
 using DotVVM.Framework.Hosting.Maui.Services;
 using Microsoft.Maui.Handlers;
 using static Android.Views.ViewGroup;
@@ -8,7 +8,10 @@ namespace DotVVM.Framework.Hosting.Maui.Controls;
 
 public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView>
 {
+    private WebViewClient? _webViewClient;
+    private WebChromeClient? _webChromeClient;
     private AndroidWebViewManager? _webviewManager;
+    public AndroidWebViewManager? WebviewManager => _webviewManager;
 
     private partial string GetUrl() => PlatformView.Url;
 
@@ -28,6 +31,12 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
             dotvvmAndroidWebView.Settings.JavaScriptEnabled = true;
             dotvvmAndroidWebView.Settings.DomStorageEnabled = true;
         }
+
+        _webViewClient = new WebKitWebViewClient(this);
+        dotvvmAndroidWebView.SetWebViewClient(_webViewClient);
+
+        _webChromeClient = new WebChromeClient();
+        dotvvmAndroidWebView.SetWebChromeClient(_webChromeClient);
 
         return dotvvmAndroidWebView;
     }
@@ -75,6 +84,7 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
         _webviewManager = new AndroidWebViewManager(
             PlatformView,
             webViewMessageHandler,
+            webRequestHandler,
             Dispatcher.GetForCurrentThread()!);
 
         webViewMessageHandler.AttachWebViewHandler(this);

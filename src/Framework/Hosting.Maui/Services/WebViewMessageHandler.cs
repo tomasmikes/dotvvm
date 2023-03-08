@@ -11,7 +11,7 @@ namespace DotVVM.Framework.Hosting.Maui.Services;
 public class WebViewMessageHandler
 {
     private DotvvmWebViewHandler webViewHandler;
-
+    
     private readonly DotvvmWebRequestHandler dotvvmWebRequestHandler;
     private readonly Lazy<JsonSerializerSettings> serializerSettings;
     private readonly Lazy<JsonSerializer> serializer;

@@ -10,7 +10,7 @@ public class AndroidWebViewManager : WebViewManager
 {
     internal static readonly string AppHostAddress = "0.0.0.0";
 
-    protected static readonly string AppOrigin = $"https://{AppHostAddress}/";
+    protected static readonly string AppOrigin = $"http://{AppHostAddress}/";
     protected static readonly AUri AndroidAppOrigin = AUri.Parse(AppOrigin);
 
     private readonly AWebView _webview;
@@ -25,13 +25,14 @@ public class AndroidWebViewManager : WebViewManager
     /// <param name="hostPageRelativePath">Path to the host page within the <paramref name="fileProvider"/>.</param>
     public AndroidWebViewManager(AWebView webview,
         WebViewMessageHandler messageHandler,
+        DotvvmWebRequestHandler dotvvmWebRequestHandler,
         IDispatcher dispatcher
         //IFileProvider fileProvider,
         //JSComponentConfigurationStore jsComponents,
         //string contentRootRelativeToAppRoot,
         //string hostPageRelativePath
     )
-        : base(messageHandler, dispatcher, new Uri(AppOrigin))
+        : base(messageHandler, dotvvmWebRequestHandler, dispatcher, new Uri(AppOrigin))
     {
         ArgumentNullException.ThrowIfNull(webview);
 

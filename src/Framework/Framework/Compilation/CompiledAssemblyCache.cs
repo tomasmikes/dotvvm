@@ -147,8 +147,8 @@ namespace DotVVM.Framework.Compilation
                 {
                     if (allAssembliesCache.TryGetTarget(out var a2) && a2 != null)
                         return a2;
-                
-#if DotNetCore
+
+#if (DotNetCore && !ANDROID)
                     // auto-loads all referenced assemblies recursively
                     var newA = DependencyContext.Default.GetDefaultAssemblyNames().Select(Assembly.Load).ToArray();
 #else

@@ -65,6 +65,7 @@ namespace DotVVM.Framework.Hosting.Maui
             Microsoft.Extensions.DependencyInjection.DotvvmServiceCollectionExtensions.RegisterDotVVMServices(services);
                         
             services.TryAddSingleton<IViewModelProtector, WebViewViewModelProtector>();
+            //services.TryAddSingleton<IDotvvmFileProvider, MauiDotvvmFileProvider>();
             services.TryAddSingleton<IEnvironmentNameProvider, WebViewEnvironmentNameProvider>();
             services.TryAddSingleton<IRequestCancellationTokenProvider, RequestCancellationTokenProvider>();
             services.TryAddScoped<DotvvmRequestContextStorage>(_ => new DotvvmRequestContextStorage());
@@ -100,7 +101,8 @@ namespace DotVVM.Framework.Hosting.Maui
                 ActivatorUtilities.CreateInstance<DotvvmLocalResourceMiddleware>(provider),
                 DotvvmFileUploadMiddleware.TryCreate(provider),
                 ActivatorUtilities.CreateInstance<DotvvmReturnedFileMiddleware>(provider),
-                ActivatorUtilities.CreateInstance<DotvvmRoutingMiddleware>(provider)
+                ActivatorUtilities.CreateInstance<DotvvmRoutingMiddleware>(provider),
+                //ActivatorUtilities.CreateInstance<WebViewFileSystemMiddleware>(provider)
             }.Where(x => x != null)
             .ToList();
 
@@ -119,6 +121,16 @@ namespace DotVVM.Framework.Hosting.Maui
             return middleware;
         }
     }
+
+    //public class WebViewFileSystemMiddleware : IMiddleware
+    //{
+    //    public IFileSystem GetCurrentFileSystem()
+    //    {
+    //        return FileSystem.Current;
+    //    }
+
+    //    public Task<bool> Handle(IDotvvmRequestContext request) => throw new NotImplementedException();
+    //}
 
     public class RequestCancellationTokenProvider : IRequestCancellationTokenProvider
     {

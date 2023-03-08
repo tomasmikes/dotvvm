@@ -1,7 +1,7 @@
 ﻿namespace DotVVM.Framework.Hosting.Maui.Controls;
 
 /// <summary>
-/// Defines a contract for a view that renders Blazor content.
+/// Defines a contract for a view that renders DotVVM content.
 /// </summary>
 public interface IDotvvmWebView : IView
 {

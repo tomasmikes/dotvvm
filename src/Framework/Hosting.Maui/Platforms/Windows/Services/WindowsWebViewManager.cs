@@ -29,7 +29,6 @@ public class WindowsWebViewManager : WebViewManager
     protected static readonly string AppOrigin = $"https://{AppHostAddress}/";
 
     private readonly WebView2Control _webview;
-    private readonly DotvvmWebRequestHandler _dotvvmWebRequestHandler;
     private readonly DotvvmWebViewHandler _dotvvmWebViewHandler;
     private readonly Task _webviewReadyTask;
 
@@ -49,10 +48,9 @@ public class WindowsWebViewManager : WebViewManager
         DotvvmWebRequestHandler dotvvmWebRequestHandler,
         DotvvmWebViewHandler dotvvmWebViewHandler
     )
-        : base(messageHandler, dispatcher, new Uri(AppOrigin))
+        : base(messageHandler, dotvvmWebRequestHandler, dispatcher, new Uri(AppOrigin))
     {
         _webview = webview ?? throw new ArgumentNullException(nameof(webview));
-        _dotvvmWebRequestHandler = dotvvmWebRequestHandler;
         _dotvvmWebViewHandler = dotvvmWebViewHandler;
 
         // Unfortunately the CoreWebView2 can only be instantiated asynchronously.
