@@ -5,6 +5,7 @@ using DotVVM.Framework.Diagnostics;
 using DotVVM.Framework.Hosting.Middlewares;
 using DotVVM.Framework.Runtime.Tracing;
 using DotVVM.Framework.Security;
+using HeyRed.Mime;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DotVVM.Framework.Hosting.Maui
@@ -65,7 +66,7 @@ namespace DotVVM.Framework.Hosting.Maui
             Microsoft.Extensions.DependencyInjection.DotvvmServiceCollectionExtensions.RegisterDotVVMServices(services);
                         
             services.TryAddSingleton<IViewModelProtector, WebViewViewModelProtector>();
-            //services.TryAddSingleton<IDotvvmFileProvider, MauiDotvvmFileProvider>();
+            services.TryAddSingleton<IDotvvmFileProvider, MauiDotvvmFileProvider>();
             services.TryAddSingleton<IEnvironmentNameProvider, WebViewEnvironmentNameProvider>();
             services.TryAddSingleton<IRequestCancellationTokenProvider, RequestCancellationTokenProvider>();
             services.TryAddScoped<DotvvmRequestContextStorage>(_ => new DotvvmRequestContextStorage());
@@ -102,7 +103,7 @@ namespace DotVVM.Framework.Hosting.Maui
                 DotvvmFileUploadMiddleware.TryCreate(provider),
                 ActivatorUtilities.CreateInstance<DotvvmReturnedFileMiddleware>(provider),
                 ActivatorUtilities.CreateInstance<DotvvmRoutingMiddleware>(provider),
-                //ActivatorUtilities.CreateInstance<WebViewFileSystemMiddleware>(provider)
+                ActivatorUtilities.CreateInstance<WebViewFileSystemMiddleware>(provider)
             }.Where(x => x != null)
             .ToList();
 
@@ -122,15 +123,37 @@ namespace DotVVM.Framework.Hosting.Maui
         }
     }
 
-    //public class WebViewFileSystemMiddleware : IMiddleware
-    //{
-    //    public IFileSystem GetCurrentFileSystem()
-    //    {
-    //        return FileSystem.Current;
-    //    }
+    public class WebViewFileSystemMiddleware : IMiddleware
+    {
+        private readonly DotvvmConfiguration _configuration;
+        private readonly IDotvvmFileProvider _mauiDotvvmFileProvider;
 
-    //    public Task<bool> Handle(IDotvvmRequestContext request) => throw new NotImplementedException();
-    //}
+        public WebViewFileSystemMiddleware(DotvvmConfiguration configuration, IDotvvmFileProvider mauiDotvvmFileProvider)
+        {
+            _configuration = configuration;
+            _mauiDotvvmFileProvider = mauiDotvvmFileProvider;
+        }
+
+        public async Task<bool> Handle(IDotvvmRequestContext request)
+        {
+            var filePath = request.HttpContext.Request.Path.Value;
+
+            if (!await _mauiDotvvmFileProvider.FileExistsAsync(filePath))
+            {
+                return false;
+            }
+
+            var fileStream = await _mauiDotvvmFileProvider.OpenFileAsync(filePath);
+            var mimeType = MimeTypesMap.GetMimeType(Path.GetFileName(filePath));
+
+            request.HttpContext.Response.ContentType = mimeType;
+            request.HttpContext.Response.Headers.Add("Cache-Control", new[] { "public, max-age=31536000, immutable" });
+
+            await fileStream.CopyToAsync(request.HttpContext.Response.Body);
+
+            return true;
+        }
+    }
 
     public class RequestCancellationTokenProvider : IRequestCancellationTokenProvider
     {

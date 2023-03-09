@@ -7,5 +7,5 @@ public interface IDotvvmFileProvider
 {
     Task<Stream> OpenFileAsync(string path);
     Task<bool> FileExistsAsync(string path);
-    Task WriteFileAsync(string path);
+    Task CopyFileToAppDataAsync(string path);
 }
