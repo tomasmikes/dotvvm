@@ -3,6 +3,7 @@ using DotVVM.Framework.Compilation.ControlTree;
 using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Diagnostics;
 using DotVVM.Framework.Hosting.Middlewares;
+using DotVVM.Framework.Routing;
 using DotVVM.Framework.Runtime.Tracing;
 using DotVVM.Framework.Security;
 using HeyRed.Mime;
@@ -85,6 +86,7 @@ namespace DotVVM.Framework.Hosting.Maui
 
             startupTracer.TraceEvent(StartupTracingConstants.DotvvmConfigurationUserConfigureStarted);
             startup.Configure(config, applicationRootPath);
+            CopyViews(applicationRootPath, config.RouteTable);
             startupTracer.TraceEvent(StartupTracingConstants.DotvvmConfigurationUserConfigureFinished);
 
             modifyConfiguration?.Invoke(config);
@@ -120,6 +122,29 @@ namespace DotVVM.Framework.Hosting.Maui
             }
 
             return middleware;
+            
+            void CopyViews(string applicationPath, DotvvmRouteTable dotvvmRouteTable)
+            {
+                var viewPaths = dotvvmRouteTable.Select(x => x.VirtualPath).ToList();
+
+                foreach (var viewPath in viewPaths)
+                {
+                    var page = FileSystem.OpenAppPackageFileAsync(viewPath).Result;
+                    using var reader = new StreamReader(page);
+                    var content = reader.ReadToEnd();
+
+                    var dirPath = Path.GetDirectoryName(viewPath);
+                    var appDataDirPath = Path.Combine(applicationPath, dirPath);
+                    Directory.CreateDirectory(appDataDirPath);
+
+                    var appDataViewPath = Path.Combine(applicationPath, viewPath);
+                    
+                    using var outputStream = File.OpenWrite(appDataViewPath);
+                    using var streamWriter = new StreamWriter(outputStream);
+
+                    streamWriter.Write(content);
+                }
+            }
         }
     }
 
