@@ -83,9 +83,18 @@ public class DotvvmWebViewClient : WebViewClient
 
     public override bool ShouldOverrideUrlLoading(AWebView view, IWebResourceRequest request)
     {
-        var intent = Intent.ParseUri(request.Url?.ToString(), IntentUriType.Scheme);
-        _webViewHandler.Context.StartActivity(intent);
-        return true;
+        var url = request.Url?.ToString();
+
+        if (_webViewHandler != null
+            && Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var requestUri)
+            && !new Uri(AppOrigin).IsBaseOf(requestUri))
+        {
+            var intent = Intent.ParseUri(url, IntentUriType.Scheme);
+            _webViewHandler.Context.StartActivity(intent);
+            return true;
+        }
+
+        return false;
     }
 
     public override void OnPageStarted(AWebView view, string url, Bitmap favicon)
