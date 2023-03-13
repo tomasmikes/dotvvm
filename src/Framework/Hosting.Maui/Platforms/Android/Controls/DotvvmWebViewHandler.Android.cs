@@ -32,10 +32,10 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
             dotvvmAndroidWebView.Settings.DomStorageEnabled = true;
         }
 
-        _webViewClient = new WebKitWebViewClient(this);
+        _webViewClient = new DotvvmWebViewClient(this);
         dotvvmAndroidWebView.SetWebViewClient(_webViewClient);
 
-        _webChromeClient = new WebChromeClient();
+        _webChromeClient = new DotvvmWebChromeClient();
         dotvvmAndroidWebView.SetWebChromeClient(_webChromeClient);
 
         return dotvvmAndroidWebView;

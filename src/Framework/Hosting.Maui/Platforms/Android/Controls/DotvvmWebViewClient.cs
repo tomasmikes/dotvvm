@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Versioning;
+using Android.Content;
 using Android.Graphics;
 using Android.Runtime;
 using Android.Webkit;
@@ -9,7 +10,7 @@ using AWebView = Android.Webkit.WebView;
 namespace DotVVM.Framework.Hosting.Maui.Controls;
 
 [SupportedOSPlatform("android23.0")]
-public class WebKitWebViewClient : WebViewClient
+public class DotvvmWebViewClient : WebViewClient
 {
     // Using an IP address means that WebView2 doesn't wait for any DNS resolution,
     // making it substantially faster. Note that this isn't real HTTP traffic, since
@@ -23,13 +24,13 @@ public class WebKitWebViewClient : WebViewClient
 
     private readonly DotvvmWebViewHandler _webViewHandler;
     
-    public WebKitWebViewClient(DotvvmWebViewHandler webViewHandler)
+    public DotvvmWebViewClient(DotvvmWebViewHandler webViewHandler)
     {
         ArgumentNullException.ThrowIfNull(webViewHandler);
         _webViewHandler = webViewHandler;
     }
 
-    protected WebKitWebViewClient(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
+    protected DotvvmWebViewClient(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
     {
         // This constructor is called whenever the .NET proxy was disposed, and it was recreated by Java. It also
         // happens when overridden methods are called between execution of this constructor and the one above.
@@ -43,8 +44,9 @@ public class WebKitWebViewClient : WebViewClient
             throw new ArgumentNullException(nameof(request));
         }
 
-        var requestUri = new Uri(request.Url?.ToString());
-        var isHostedAppRequested = new Uri(AppOrigin).IsBaseOf(requestUri);
+        var url = request.Url?.ToString();
+        var requestUri = url != null ? new Uri(url) : null;
+        var isHostedAppRequested = url != null && new Uri(AppOrigin).IsBaseOf(requestUri);
 
         if (requestUri == null || !isHostedAppRequested)
         {
@@ -77,6 +79,13 @@ public class WebKitWebViewClient : WebViewClient
 
         }
         return base.ShouldInterceptRequest(view, request);
+    }
+
+    public override bool ShouldOverrideUrlLoading(AWebView view, IWebResourceRequest request)
+    {
+        var intent = Intent.ParseUri(request.Url?.ToString(), IntentUriType.Scheme);
+        _webViewHandler.Context.StartActivity(intent);
+        return true;
     }
 
     public override void OnPageStarted(AWebView view, string url, Bitmap favicon)
