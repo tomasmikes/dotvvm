@@ -8,13 +8,15 @@ namespace DotVVM.Framework.Hosting
 {
     public class AggregateMarkupFileLoader : IMarkupFileLoader
     {
+        private readonly IDotvvmFileProvider dotvvmFileProvider;
         public List<IMarkupFileLoader> Loaders { get; private set; } = new List<IMarkupFileLoader>();
 
-        public AggregateMarkupFileLoader()
+        public AggregateMarkupFileLoader(IDotvvmFileProvider dotvvmFileProvider)
         {
+            this.dotvvmFileProvider = dotvvmFileProvider;
             // the EmbeddedMarkupFileLoader must be registered before DefaultMarkupFileLoader (which gets wrapped by HotReloadMarkupFileLoader)
             Loaders.Add(new EmbeddedMarkupFileLoader());
-            Loaders.Add(new DefaultMarkupFileLoader());
+            Loaders.Add(new DefaultMarkupFileLoader(dotvvmFileProvider));
         }
 
         /// <summary>

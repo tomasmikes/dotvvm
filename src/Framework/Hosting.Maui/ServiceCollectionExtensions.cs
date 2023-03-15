@@ -138,11 +138,8 @@ namespace DotVVM.Framework.Hosting.Maui
                     Directory.CreateDirectory(appDataDirPath);
 
                     var appDataViewPath = Path.Combine(applicationPath, viewPath);
-                    
-                    using var outputStream = File.OpenWrite(appDataViewPath);
-                    using var streamWriter = new StreamWriter(outputStream);
 
-                    streamWriter.Write(content);
+                    File.WriteAllText(appDataViewPath, content);
                 }
             }
         }

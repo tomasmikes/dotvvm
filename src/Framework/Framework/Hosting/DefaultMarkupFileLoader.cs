@@ -2,12 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using DotVVM.Framework.Configuration;
 
 namespace DotVVM.Framework.Hosting
 {
     public class DefaultMarkupFileLoader : IMarkupFileLoader
     {
+        private readonly IDotvvmFileProvider dotvvmFileProvider;
+
+        public DefaultMarkupFileLoader(IDotvvmFileProvider dotvvmFileProvider)
+        {
+            this.dotvvmFileProvider = dotvvmFileProvider;
+        }
+
         /// <summary>
         /// Gets the markup file for the specified virtual path.
         /// </summary>
@@ -22,6 +31,17 @@ namespace DotVVM.Framework.Hosting
             catch(NotSupportedException)
             {
                 return null;
+            }
+
+            if (virtualPath.EndsWith(".dotmaster") || virtualPath.EndsWith(".dotcontrol"))
+            {
+                // TODO: do this better way?
+                using var manualResetEventSlim = new ManualResetEventSlim();
+                Task.Run(async () => {
+                    await dotvvmFileProvider.CopyFileToAppDataAsync(virtualPath);
+                    manualResetEventSlim.Set();
+                });
+                manualResetEventSlim.Wait();
             }
 
             if (File.Exists(fullPath))

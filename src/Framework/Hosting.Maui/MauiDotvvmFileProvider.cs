@@ -2,9 +2,11 @@
 
 public class MauiDotvvmFileProvider : IDotvvmFileProvider
 {
-    public Task<Stream> OpenFileAsync(string path) => FileSystem.OpenAppPackageFileAsync(path);
+    public Task<Stream> OpenFileAsync(string path)
+        => FileSystem.OpenAppPackageFileAsync(path);
 
-    public Task<bool> FileExistsAsync(string path) => FileSystem.AppPackageFileExistsAsync(path);
+    public Task<bool> FileExistsAsync(string path)
+        => FileSystem.AppPackageFileExistsAsync(path);
 
     public async Task CopyFileToAppDataAsync(string path)
     {
@@ -14,7 +16,7 @@ public class MauiDotvvmFileProvider : IDotvvmFileProvider
         {
             throw new FileNotFoundException();
         }
-
+        
         // read file from app package
         var fileStream = await OpenFileAsync(path);
         using var reader = new StreamReader(fileStream);
@@ -27,9 +29,6 @@ public class MauiDotvvmFileProvider : IDotvvmFileProvider
 
         // create file in app data
         var appDataFilePath = Path.Combine(FileSystem.AppDataDirectory, path);
-        
-        await using var outputStream = File.OpenWrite(appDataFilePath);
-        await using var streamWriter = new StreamWriter(outputStream);
-        await streamWriter.WriteAsync(fileContent);
+        await File.WriteAllTextAsync(appDataFilePath, fileContent);
     }
 }
