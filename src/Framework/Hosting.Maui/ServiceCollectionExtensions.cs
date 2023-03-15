@@ -126,20 +126,11 @@ namespace DotVVM.Framework.Hosting.Maui
             void CopyViews(string applicationPath, DotvvmRouteTable dotvvmRouteTable)
             {
                 var viewPaths = dotvvmRouteTable.Select(x => x.VirtualPath).ToList();
+                var fileProvider = config.ServiceProvider.GetService<IDotvvmFileProvider>();
 
                 foreach (var viewPath in viewPaths)
                 {
-                    var page = FileSystem.OpenAppPackageFileAsync(viewPath).Result;
-                    using var reader = new StreamReader(page);
-                    var content = reader.ReadToEnd();
-
-                    var dirPath = Path.GetDirectoryName(viewPath);
-                    var appDataDirPath = Path.Combine(applicationPath, dirPath);
-                    Directory.CreateDirectory(appDataDirPath);
-
-                    var appDataViewPath = Path.Combine(applicationPath, viewPath);
-
-                    File.WriteAllText(appDataViewPath, content);
+                    fileProvider.CopyFileToAppDataAsync(viewPath);
                 }
             }
         }
