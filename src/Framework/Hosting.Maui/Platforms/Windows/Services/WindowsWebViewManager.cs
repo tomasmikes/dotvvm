@@ -46,8 +46,7 @@ public class WindowsWebViewManager : WebViewManager
         WebViewMessageHandler messageHandler,
         IDispatcher dispatcher,
         DotvvmWebRequestHandler dotvvmWebRequestHandler,
-        DotvvmWebViewHandler dotvvmWebViewHandler
-    )
+        DotvvmWebViewHandler dotvvmWebViewHandler)
         : base(messageHandler, dotvvmWebRequestHandler, dispatcher, new Uri(AppOrigin))
     {
         _webview = webview ?? throw new ArgumentNullException(nameof(webview));
@@ -106,8 +105,13 @@ public class WindowsWebViewManager : WebViewManager
             ")
             .AsTask()
             .ConfigureAwait(true);
+        
+        _webview.CoreWebView2.DOMContentLoaded += async (_, __) =>
+        {
+            await _webview.CoreWebView2!.ExecuteScriptAsync(@"window.dotvvm.initWebViewMessaging(); ");
+        };
 
-        _webview.CoreWebView2.WebMessageReceived += (s, e) => OnMessageReceived(new Uri(e.Source), e.WebMessageAsJson);
+        _webview.CoreWebView2.WebMessageReceived += (s, e) => OnMessageReceived(new Uri(e.Source), e.TryGetWebMessageAsString());
     }
 
     /// <summary>

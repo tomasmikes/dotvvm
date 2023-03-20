@@ -33,7 +33,7 @@ const pendingRequests: { resolve: (result: any) => void, reject: (result: any) =
 
 // send messages
 export function sendMessage(message: WebViewMessageEnvelope) {
-    (window.external as any).sendMessage(message);
+    (window.external as any).sendMessage(JSON.stringify(message));
 }
 
 export async function sendMessageAndWaitForResponse<T>(messageType: string, message: any): Promise<T> {
@@ -72,47 +72,49 @@ function processMessage(envelope: WebViewMessageEnvelope) {
     }
 }
 
-// handle commands from the webview
-(window.external as any).receiveMessage(async (json: any) => {
+export function initWebViewMessaging() {
+    // handle commands from the webview
+    (window.external as any).receiveMessage(async (json: any) => {
 
-    function processRequestOrResponse(envelope: WebViewMessageEnvelope) {
+        function processRequestOrResponse(envelope: WebViewMessageEnvelope) {
 
-        if (envelope.type === "HttpRequest") {
-            // handle incoming HTTP request responses
-            const promise = pendingRequests[envelope.messageId!]
-            const message = <HttpRequestOutputMessage>envelope.payload;
-            const headers = new Headers();
-            for (const h of message.headers) {
-                headers.append(h.key, h.value);
+            if (envelope.type === "HttpRequest") {
+                // handle incoming HTTP request responses
+                const promise = pendingRequests[envelope.messageId!]
+                const message = <HttpRequestOutputMessage>envelope.payload;
+                const headers = new Headers();
+                for (const h of message.headers) {
+                    headers.append(h.key, h.value);
+                }
+                const response = new Response(message.bodyString, { headers, status: message.statusCode });
+                promise.resolve(response);
+                return;
+
+            } else {
+                return processMessage(envelope);
             }
-            const response = new Response(message.bodyString, { headers, status: message.statusCode });
-            promise.resolve(response);
-            return;
-
-        } else {
-            return processMessage(envelope);
         }
-    }
 
-    const envelope = <WebViewMessageEnvelope>JSON.parse(json);
-    try {
-        const response = await processRequestOrResponse(envelope);
-        if (typeof response !== "undefined") {
+        const envelope = <WebViewMessageEnvelope>JSON.parse(json);
+        try {
+            const response = await processRequestOrResponse(envelope);
+            if (typeof response !== "undefined") {
+                sendMessage(<WebViewMessageEnvelope>{
+                    type: envelope.type,
+                    messageId: envelope.messageId,
+                    payload: response
+                });
+            }
+        }
+        catch (err) {
             sendMessage(<WebViewMessageEnvelope>{
-                type: envelope.type,
+                type: "ErrorOccurred",
                 messageId: envelope.messageId,
-                payload: response
+                payload: JSON.stringify(err)
             });
         }
-    }
-    catch (err) {
-        sendMessage(<WebViewMessageEnvelope>{
-            type: "ErrorOccurred",
-            messageId: envelope.messageId,
-            payload: JSON.stringify(err)
-        });
-    }
-});
+    });
+} 
 
 export async function webMessageFetch(url: string, init: RequestInit): Promise<Response> {
     if (init.method?.toUpperCase() === "GET") {
@@ -150,16 +152,16 @@ function notifyNavigationCompleted(messageType: string) {
     });
 }
 
-initCompleted.subscribe(() => {
-    notifyNavigationCompleted("InitCompleted");
-});
+//initCompleted.subscribe(() => {
+//     notifyNavigationCompleted("InitCompleted");
+//});
 
-spaNavigated.subscribe(() => {
-    notifyNavigationCompleted("SpaNavigationCompleted");
-});
+//spaNavigated.subscribe(() => {
+//    notifyNavigationCompleted("SpaNavigationCompleted");
+//});
 
-spaNavigating.subscribe(() => {
-    sendMessage({
-        type: "SpaNavigating"
-    });
-});
+//spaNavigating.subscribe(() => {
+//    sendMessage({
+//        type: "SpaNavigating"
+//    });
+//});

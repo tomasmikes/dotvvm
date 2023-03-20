@@ -99,8 +99,79 @@ public class DotvvmWebViewClient : WebViewClient
 
     public override void OnPageStarted(AWebView view, string url, Bitmap favicon)
     {
+        _webViewHandler.IsPageLoaded = false;
+
         base.OnPageStarted(view, url, favicon);
     }
 
-    public override void OnPageFinished(AWebView view, string url) => base.OnPageFinished(view, url);
+    public override void OnPageFinished(AWebView view, string url)
+    {
+        base.OnPageFinished(view, url);
+
+        view.EvaluateJavascript(@"
+
+		const channel = new MessageChannel();
+		var nativeJsPortOne = channel.port1;
+		var nativeJsPortTwo = channel.port2;
+		window.addEventListener('message', function (event) {
+			if (event.data != 'capturePort') {
+				nativeJsPortOne.postMessage(event.data);
+			}
+			else if (event.data == 'capturePort') {
+				if (event.ports[0] != null) {
+					nativeJsPortTwo = event.ports[0];
+				}
+			}
+		}, false);
+
+		nativeJsPortOne.addEventListener('message', function (event) {
+            // alert('sendMessage: ' + event.data);
+		}, false);
+
+		nativeJsPortTwo.addEventListener('message', function (event) {
+            // alert('receiveData: ' + event.data);
+			// data from native code to JS
+			if (window.external.__callback) {
+				window.external.__callback(event.data);
+			}
+		}, false);
+		nativeJsPortOne.start();
+		nativeJsPortTwo.start();
+
+		window.external.sendMessage = function (message) {
+			// data from JS to native code
+			nativeJsPortTwo.postMessage(message);
+		};
+
+		window.external.receiveMessage = function (callback) {
+			window.external.__callback = callback;
+		}
+
+        window.dotvvm.initWebViewMessaging();
+
+				", new JavaScriptValueCallback(_ => {
+            // Set up Server ports
+            _webViewHandler?.WebviewManager?.SetUpMessageChannel();
+        }));
+
+        // TODO: set page loaded to true when dotvvm is ready
+        _webViewHandler.IsPageLoaded = true;
+    }
+
+    private class JavaScriptValueCallback : Java.Lang.Object, IValueCallback
+    {
+        private readonly Action<Java.Lang.Object?> _callback;
+
+        public JavaScriptValueCallback(Action<Java.Lang.Object?> callback)
+        {
+            ArgumentNullException.ThrowIfNull(callback);
+            _callback = callback;
+        }
+
+        public void OnReceiveValue(Java.Lang.Object? value)
+        {
+            _callback(value);
+        }
+    }
+
 }
