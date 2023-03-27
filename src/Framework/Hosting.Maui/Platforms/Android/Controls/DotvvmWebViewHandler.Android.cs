@@ -10,8 +10,8 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
 {
     private WebViewClient? _webViewClient;
     private WebChromeClient? _webChromeClient;
-    private AndroidWebViewManager? _webviewManager;
-    public AndroidWebViewManager? WebviewManager => _webviewManager;
+    private AndroidWebViewManager? webviewManager;
+    public AndroidWebViewManager? WebviewManager => webviewManager;
 
     private partial string GetUrl() => PlatformView.Url;
 
@@ -46,17 +46,17 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
     {
         platformView.StopLoading();
 
-        if (_webviewManager != null)
+        if (webviewManager != null)
         {
             // Dispose this component's contents and block on completion so that user-written disposal logic and
             // DotVVM disposal logic will complete.
-            _webviewManager?
+            webviewManager?
                 .DisposeAsync()
                 .AsTask()
                 .GetAwaiter()
                 .GetResult();
 
-            _webviewManager = null;
+            webviewManager = null;
         }
     }
 
@@ -67,7 +67,7 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
     partial void StartWebViewCoreIfPossible()
     {
         if (!RequiredStartupPropertiesSet ||
-            _webviewManager != null)
+            webviewManager != null)
         {
             return;
         }
@@ -81,7 +81,7 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
         var webRequestHandler = Services!.GetRequiredService<DotvvmWebRequestHandler>();
         var webViewMessageHandler = Services!.GetRequiredService<WebViewMessageHandler>();
 
-        _webviewManager = new AndroidWebViewManager(
+        webviewManager = new AndroidWebViewManager(
             PlatformView,
             webViewMessageHandler,
             webRequestHandler,
@@ -96,7 +96,7 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
         }
         else
         {
-            _webviewManager.Navigate(Url);
+            webviewManager.Navigate(Url);
         }
     }
 }

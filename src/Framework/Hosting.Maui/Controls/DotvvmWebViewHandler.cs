@@ -35,7 +35,7 @@ public partial class DotvvmWebViewHandler
         {
             if (!string.IsNullOrEmpty(value))
             {
-                _webviewManager?.Navigate(value);
+                webviewManager?.Navigate(value);
             }
         }
     }
@@ -151,7 +151,7 @@ public partial class DotvvmWebViewHandler
     {
         var message = _messageHandler.CreateCommandMessage("GetViewModelSnapshot");
 
-        _webviewManager.SendMessage(_messageHandler.SerializeObject(message));
+        webviewManager.SendMessage(_messageHandler.SerializeObject(message));
         return _messageHandler.WaitForMessage<dynamic>(message.MessageId);
     }
 
@@ -160,7 +160,7 @@ public partial class DotvvmWebViewHandler
         var jsonPatch = _messageHandler.SerializeObject(patch, false);
         var message = _messageHandler.CreateCommandMessage("PatchViewModel", jsonPatch);
 
-        _webviewManager.SendMessage(_messageHandler.SerializeObject(message));
+        webviewManager.SendMessage(_messageHandler.SerializeObject(message));
         return _messageHandler.WaitForMessage<dynamic>(message.MessageId);
     }
 }
