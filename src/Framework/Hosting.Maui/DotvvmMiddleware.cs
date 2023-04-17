@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Specialized;
-using System.Net;
 using System.Security.Claims;
 using System.Text;
 using DotVVM.Framework.Configuration;

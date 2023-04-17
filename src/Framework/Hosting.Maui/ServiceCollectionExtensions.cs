@@ -2,6 +2,7 @@
 using DotVVM.Framework.Compilation.ControlTree;
 using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Diagnostics;
+using DotVVM.Framework.Hosting.Maui.Services;
 using DotVVM.Framework.Hosting.Middlewares;
 using DotVVM.Framework.Routing;
 using DotVVM.Framework.Runtime.Tracing;
@@ -64,7 +65,8 @@ namespace DotVVM.Framework.Hosting.Maui
             startupTracer.TraceEvent(StartupTracingConstants.AddDotvvmStarted);
 
             Microsoft.Extensions.DependencyInjection.DotvvmServiceCollectionExtensions.RegisterDotVVMServices(services);
-                        
+
+            services.AddSingleton<ICsrfProtector, WebViewCsrfProtector>();
             services.TryAddSingleton<IViewModelProtector, WebViewViewModelProtector>();
             services.TryAddSingleton<IDotvvmFileProvider, MauiDotvvmFileProvider>();
             services.TryAddSingleton<IEnvironmentNameProvider, WebViewEnvironmentNameProvider>();
@@ -85,7 +87,7 @@ namespace DotVVM.Framework.Hosting.Maui
 
             startupTracer.TraceEvent(StartupTracingConstants.DotvvmConfigurationUserConfigureStarted);
             startup.Configure(config, applicationRootPath);
-            CopyViews(applicationRootPath, config.RouteTable);
+            CopyViews(config.RouteTable);
             startupTracer.TraceEvent(StartupTracingConstants.DotvvmConfigurationUserConfigureFinished);
 
             modifyConfiguration?.Invoke(config);
@@ -122,14 +124,28 @@ namespace DotVVM.Framework.Hosting.Maui
 
             return middleware;
             
-            void CopyViews(string applicationPath, DotvvmRouteTable dotvvmRouteTable)
+            void CopyViews(DotvvmRouteTable dotvvmRouteTable)
             {
-                var viewPaths = dotvvmRouteTable.Select(x => x.VirtualPath).ToList();
                 var fileProvider = config.ServiceProvider.GetService<IDotvvmFileProvider>();
 
-                foreach (var viewPath in viewPaths)
+                var viewPaths = dotvvmRouteTable
+                    .Select(x => x.VirtualPath)
+                    .ToList();
+
+                var controlViewPaths = config.Markup.Controls
+                    .Where(x => x.Src != null)
+                    .Select(x => x.Src)
+                    .ToList();
+
+                foreach (var viewPath in viewPaths.Concat(controlViewPaths))
                 {
-                    fileProvider.CopyFileToAppDataAsync(viewPath);
+                    // TODO: do this better way?
+                    using var manualResetEventSlim = new ManualResetEventSlim();
+                    Task.Run(async () => {
+                        await fileProvider.CopyFileToAppDataAsync(viewPath);
+                        manualResetEventSlim.Set();
+                    });
+                    manualResetEventSlim.Wait();
                 }
             }
         }

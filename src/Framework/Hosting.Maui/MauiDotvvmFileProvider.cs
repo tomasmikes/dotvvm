@@ -1,7 +1,16 @@
-﻿namespace DotVVM.Framework.Hosting.Maui;
+﻿using DotVVM.Framework.Configuration;
+
+namespace DotVVM.Framework.Hosting.Maui;
 
 public class MauiDotvvmFileProvider : IDotvvmFileProvider
 {
+    private readonly DotvvmConfiguration configuration;
+
+    public MauiDotvvmFileProvider(DotvvmConfiguration configuration)
+    {
+        this.configuration = configuration;
+    }
+
     public Task<Stream> OpenFileAsync(string path)
         => FileSystem.OpenAppPackageFileAsync(path);
 
@@ -16,7 +25,7 @@ public class MauiDotvvmFileProvider : IDotvvmFileProvider
         {
             throw new FileNotFoundException();
         }
-        
+
         // read file from app package
         var fileStream = await OpenFileAsync(path);
         using var reader = new StreamReader(fileStream);
@@ -24,11 +33,11 @@ public class MauiDotvvmFileProvider : IDotvvmFileProvider
 
         // create directories in app data
         var dirPath = Path.GetDirectoryName(path);
-        var appDataDirPath = Path.Combine(FileSystem.AppDataDirectory, dirPath);
+        var appDataDirPath = Path.Combine(configuration.ApplicationPhysicalPath, dirPath);
         Directory.CreateDirectory(appDataDirPath);
 
         // create file in app data
-        var appDataFilePath = Path.Combine(FileSystem.AppDataDirectory, path);
+        var appDataFilePath = Path.Combine(configuration.ApplicationPhysicalPath, path);
         await File.WriteAllTextAsync(appDataFilePath, fileContent);
     }
 }

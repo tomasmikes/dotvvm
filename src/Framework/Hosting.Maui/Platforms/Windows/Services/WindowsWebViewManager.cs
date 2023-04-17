@@ -1,5 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Adapted from https://github.com/dotnet/maui
 
 using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -108,7 +107,7 @@ public class WindowsWebViewManager : WebViewManager
         
         _webview.CoreWebView2.DOMContentLoaded += async (_, __) =>
         {
-            await _webview.CoreWebView2!.ExecuteScriptAsync(@"window.dotvvm.initWebViewMessaging(); ");
+            await _webview.CoreWebView2!.ExecuteScriptAsync(@"window.dotvvm.webView.initWebViewMessaging(); ");
         };
 
         _webview.CoreWebView2.WebMessageReceived += (s, e) => OnMessageReceived(new Uri(e.Source), e.TryGetWebMessageAsString());

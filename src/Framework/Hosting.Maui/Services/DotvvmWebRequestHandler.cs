@@ -30,7 +30,8 @@
 
     public record DotvvmResponse(int StatusCode, IEnumerable<KeyValuePair<string, string>> Headers, string MimeType, string CharEncoding, MemoryStream Content);
 
-    public record DotvvmRequest(Uri RequestUri,
+    public record DotvvmRequest(
+        Uri RequestUri,
         string Method,
         IEnumerable<KeyValuePair<string, string>> Headers,
         Stream ContentStream);

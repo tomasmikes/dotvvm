@@ -47,4 +47,9 @@ public class IOSWebViewManager : WebViewManager
             javascript: $"__dispatchMessageCallback(\"{messageJSStringLiteral}\")",
             completionHandler: (NSObject result, NSError error) => { });
     }
+    
+    public void OnMessageReceivedPublic(Uri uri, string message)
+    {
+        OnMessageReceived(uri, message);
+    }
 }

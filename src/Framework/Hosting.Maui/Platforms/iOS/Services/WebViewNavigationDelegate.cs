@@ -1,4 +1,5 @@
 ﻿using DotVVM.Framework.Hosting.Maui.Controls;
+using Foundation;
 using UIKit;
 using WebKit;
 
@@ -22,4 +23,27 @@ internal class WebViewNavigationDelegate : WKNavigationDelegate
         }
         decisionHandler(WKNavigationActionPolicy.Allow);
     }
+
+    public override void DidReceiveServerRedirectForProvisionalNavigation(WKWebView webView, WKNavigation navigation)
+    {
+    }
+
+    public override void DidFailNavigation(WKWebView webView, WKNavigation navigation, NSError error)
+    {
+    }
+
+    public override void DidFailProvisionalNavigation(WKWebView webView, WKNavigation navigation, NSError error)
+    {
+    }
+
+    public override void DidCommitNavigation(WKWebView webView, WKNavigation navigation)
+    {
+    }
+
+    public override void DidFinishNavigation(WKWebView webView, WKNavigation navigation)
+    {
+    }
+
+    // TODO: fix webview being terminated
+    public override void ContentProcessDidTerminate(WKWebView webView) => webView.Reload();
 }

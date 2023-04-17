@@ -1,7 +1,6 @@
 ﻿using DotVVM.Framework.Hosting.Maui.Controls;
 using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Hosting.Maui.Services;
-using DotVVM.Framework.Security;
 
 namespace DotVVM.Framework.Hosting.Maui;
 
@@ -41,8 +40,10 @@ public static class DotvvmServiceCollectionExtensions
     {
         builder.ConfigureMauiHandlers(handlers => handlers.AddHandler<IDotvvmWebView, DotvvmWebViewHandler>());
 
-        builder.Services.AddDotVVM<TDotvvmServiceConfigurator, TDotvvmStartup>(applicationPath, configure);
-        builder.Services.AddSingleton<ICsrfProtector, WebViewCsrfProtector>();
+        builder.Services.AddDotVVM<TDotvvmServiceConfigurator, TDotvvmStartup>(applicationPath, config => {
+            config.Debug = debug;
+            ConfigureDotvvm(config);
+        });
 
         builder.Services.AddSingleton<DotvvmWebRequestHandler>();
         builder.Services.AddSingleton<WebViewMessageHandler>();

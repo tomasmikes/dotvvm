@@ -33,7 +33,7 @@ namespace DotVVM.Framework.Hosting
                 return null;
             }
 
-            if (virtualPath.EndsWith(".dotmaster") || virtualPath.EndsWith(".dotcontrol"))
+            if (virtualPath.EndsWith(".dotmaster"))
             {
                 // TODO: do this better way?
                 using var manualResetEventSlim = new ManualResetEventSlim();

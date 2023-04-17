@@ -78,6 +78,7 @@ public class DotvvmWebViewClient : WebViewClient
         {
 
         }
+        // TODO: null?
         return base.ShouldInterceptRequest(view, request);
     }
 
@@ -147,7 +148,7 @@ public class DotvvmWebViewClient : WebViewClient
 			window.external.__callback = callback;
 		}
 
-        window.dotvvm.initWebViewMessaging();
+        window.dotvvm.webView.initWebViewMessaging();
 
 				", new JavaScriptValueCallback(_ => {
             // Set up Server ports

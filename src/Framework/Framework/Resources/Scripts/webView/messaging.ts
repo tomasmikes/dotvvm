@@ -67,7 +67,8 @@ function processMessage(envelope: WebViewMessageEnvelope) {
             resultMessage.content = JSON.stringify(err);
         }
         return resultMessage;
-    } else {
+    }
+    else {
         throw `Command ${envelope.type} not found!`;
     }
 }
@@ -132,7 +133,7 @@ export async function webMessageFetch(url: string, init: RequestInit): Promise<R
     return await sendMessageAndWaitForResponse<Response>("HttpRequest", message);
 }
 
-function sendPageNotification(methodName: string, args: any[]) {
+export function sendPageNotification(methodName: string, args: any[]) {
     sendMessage({
         type: "PageNotification",
         payload: <PageNotificationMessage>{

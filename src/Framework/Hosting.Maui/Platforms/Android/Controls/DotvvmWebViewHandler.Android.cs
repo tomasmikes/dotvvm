@@ -30,6 +30,7 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, AWebView
 
             dotvvmAndroidWebView.Settings.JavaScriptEnabled = true;
             dotvvmAndroidWebView.Settings.DomStorageEnabled = true;
+            AWebView.SetWebContentsDebuggingEnabled(true);
         }
 
         _webViewClient = new DotvvmWebViewClient(this);

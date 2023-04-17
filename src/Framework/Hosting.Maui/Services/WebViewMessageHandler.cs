@@ -55,12 +55,12 @@ public class WebViewMessageHandler
         object? response = null;
         if (message.Type == "HttpRequest")
         {
-            var request = message.Payload.ToObject<HttpRequestInputMessage>(serializer.Value);
+            var request = message.Payload?.ToObject<HttpRequestInputMessage>(serializer.Value);
             response = await ProcessHttpRequest(request);
         }
         else if (message.Type == "GetViewModelSnapshot" || message.Type == "PatchViewModel")
         {
-            var payload = message.Payload.ToObject<ResultMessage>(serializer.Value);
+            var payload = message.Payload?.ToObject<ResultMessage>(serializer.Value);
             incomingMessageQueue[message.MessageId].SetResult(JsonConvert.SerializeObject(payload.Content, serializerSettings.Value));
         }
         else if (message.Type == "SpaNavigating")
@@ -70,9 +70,9 @@ public class WebViewMessageHandler
         else if (message.Type == "SpaNavigationCompleted" || message.Type == "InitCompleted")
         {
             // dottvm is initialized and navigation is completed
-            var payload = message.Payload.ToObject<InitCompletedMessage>(serializer.Value);
+            var payload = message.Payload?.ToObject<InitCompletedMessage>(serializer.Value);
 
-            NotifyAboutRouteChange(payload.RouteName);
+            NotifyAboutRouteChange(payload?.RouteName);
 
             if (message.Type == "SpaNavigationCompleted")
             {
@@ -86,7 +86,7 @@ public class WebViewMessageHandler
         }
         else if (message.Type == "PageNotification")
         {
-            var args = message.Payload.ToObject<PageNotificationEventArgs>(serializer.Value);
+            var args = message.Payload?.ToObject<PageNotificationEventArgs>(serializer.Value);
             webViewHandler.PageNotificationReceived?.Invoke(args);
         }
         else if (message.Type == "ErrorOccurred")
@@ -121,6 +121,7 @@ public class WebViewMessageHandler
             request.Headers,
             new MemoryStream(Encoding.UTF8.GetBytes(request.BodyString))
         );
+
         return new HttpRequestOutputMessage()
         {
             StatusCode = response.StatusCode,

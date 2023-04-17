@@ -1,7 +1,6 @@
 import { initCore, getViewModel, getViewModelObservable, initBindings, getCulture, getState, getRouteName, getRouteParameters, getStateManager } from "./dotvvm-base"
 import * as events from './events'
 import * as spa from "./spa/spa"
-import * as webView from "./webView/webView"
 import * as validation from './validation/validation'
 import { postBack } from './postback/postback'
 import { serialize } from './serialization/serialize'
@@ -78,7 +77,6 @@ const dotvvmExports = {
     validation: validation.globalValidationObject,
     postBack,
     init,
-    initWebViewMessaging: webViewMessaging.initWebViewMessaging,
     registerGlobalComponent: viewModuleManager.registerGlobalComponent,
     isPostbackRunning,
     events: (compileConstants.isSpa ?
@@ -143,7 +141,12 @@ if (compileConstants.isSpa) {
 }
 
 if (compileConstants.isWebView) {
-    (dotvvmExports as any).webView = webView;
+    (dotvvmExports as any).webView = {
+        initWebViewMessaging: webViewMessaging.initWebViewMessaging,
+            notifyMauiPage(methodName: string, args: any[]) {
+            webViewMessaging.sendPageNotification(methodName, args);
+        }
+    };
 }
 
 if (compileConstants.debug) {
@@ -151,7 +154,7 @@ if (compileConstants.debug) {
 }
 
 declare global {
-    const dotvvm: typeof dotvvmExports & {debug?: true, isSpaReady?: typeof isSpaReady, handleSpaNavigation?: typeof handleSpaNavigation, webView?: typeof webView};
+    const dotvvm: typeof dotvvmExports & {debug?: true, isSpaReady?: typeof isSpaReady, handleSpaNavigation?: typeof handleSpaNavigation};
 
     interface Window {
         dotvvm: typeof dotvvmExports

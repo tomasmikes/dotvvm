@@ -35,7 +35,6 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, WKWebVie
 
         var webview = new WKWebView(RectangleF.Empty, config) {
             BackgroundColor = UIColor.Clear,
-            //BackgroundColor = UIColor.Red,
             AutosizesSubviews = true
         };
 
@@ -44,6 +43,7 @@ public partial class DotvvmWebViewHandler : ViewHandler<IDotvvmWebView, WKWebVie
 
     private void MessageReceived(Uri uri, string message)
     {
+        webviewManager.OnMessageReceivedPublic(uri, message);
     }
 
     private partial string GetUrl()
