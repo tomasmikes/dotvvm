@@ -160,6 +160,7 @@ namespace DotVVM.Framework.Compilation.Javascript
 
             JsBindingApi.RegisterJavascriptTranslations(this);
             BindingApi.RegisterJavascriptTranslations(this);
+            WebViewBindingApi.RegisterJavascriptTranslations(this);
             BindingPageInfo.RegisterJavascriptTranslations(this);
             BindingCollectionInfo.RegisterJavascriptTranslations(this);
 

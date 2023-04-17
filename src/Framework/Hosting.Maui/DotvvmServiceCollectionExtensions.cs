@@ -1,4 +1,5 @@
-﻿using DotVVM.Framework.Hosting.Maui.Controls;
+﻿using DotVVM.Framework.Binding;
+using DotVVM.Framework.Hosting.Maui.Controls;
 using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Hosting.Maui.Services;
 
@@ -54,5 +55,6 @@ public static class DotvvmServiceCollectionExtensions
     private static void ConfigureDotvvm(DotvvmConfiguration config)
     {
         config.Resources.DefaultResourceProcessors.Add(new WebViewResourceProcessor(config));
+        config.Markup.DefaultExtensionParameters.Add(new WebViewExtensionParameter());
     }
 }
