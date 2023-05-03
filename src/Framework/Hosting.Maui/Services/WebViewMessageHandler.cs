@@ -114,12 +114,15 @@ public class WebViewMessageHandler
 
     private async Task<HttpRequestOutputMessage> ProcessHttpRequest(HttpRequestInputMessage request)
     {
+        var bodyStream = request.BodyString != null ? new MemoryStream(Encoding.UTF8.GetBytes(request.BodyString)) : null;
+        var requestMethod = request.Method ?? "GET"; // SPA request has no method
+
         var response = await dotvvmWebRequestHandler.ProcessRequest
         (
             new Uri(new Uri("https://0.0.0.0/"), request.Url),
-            request.Method,
+            requestMethod,
             request.Headers,
-            new MemoryStream(Encoding.UTF8.GetBytes(request.BodyString))
+            bodyStream
         );
 
         return new HttpRequestOutputMessage()
