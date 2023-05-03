@@ -1,4 +1,6 @@
-﻿using Android.Webkit;
+﻿// Adapted from https://github.com/dotnet/maui
+
+using Android.Webkit;
 using DotVVM.Framework.Hosting.Maui.Services;
 using Microsoft.Maui.Handlers;
 using static Android.Views.ViewGroup;

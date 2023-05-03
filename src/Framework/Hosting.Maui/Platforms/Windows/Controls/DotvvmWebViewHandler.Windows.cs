@@ -1,4 +1,5 @@
-﻿using DotVVM.Framework.Hosting.Maui.Controls;
+﻿// Adapted from https://github.com/dotnet/maui
+
 using DotVVM.Framework.Hosting.Maui.Platforms.Windows.Services;
 using DotVVM.Framework.Hosting.Maui.Services;
 using Microsoft.Maui.Handlers;

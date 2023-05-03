@@ -1,4 +1,6 @@
-﻿using System.Runtime.Versioning;
+﻿// Adapted from https://github.com/dotnet/maui
+
+using System.Runtime.Versioning;
 using Android.Content;
 using Android.Graphics;
 using Android.Runtime;

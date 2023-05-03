@@ -1,4 +1,6 @@
-﻿using Foundation;
+﻿// Adapted from https://github.com/dotnet/maui
+
+using Foundation;
 using System.Drawing;
 using Microsoft.Maui.Handlers;
 using UIKit;

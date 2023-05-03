@@ -1,4 +1,6 @@
-﻿using System.Text.Encodings.Web;
+﻿// Adapted from https://github.com/dotnet/maui
+
+using System.Text.Encodings.Web;
 using DotVVM.Framework.Hosting.Maui.Controls;
 using DotVVM.Framework.Hosting.Maui.Services;
 using Foundation;
